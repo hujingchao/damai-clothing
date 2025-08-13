@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.system.ApprovingMapper">
+
+    <select id="getPage" resultType="com.fenglei.model.system.entity.Approving">
+        SELECT *
+        FROM (
+            -- 工价模板
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, bw.id, bw.number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, bw.status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM bd_temp_wages bw
+                LEFT JOIN flow_work_flow_instantiate fwfi ON bw.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.basedata.BdTempWages' AND bw.status = 1 AND bw.enabled = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 成品
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, bmd.id, bmd.number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, bmd.status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM bd_material_detail bmd
+                LEFT JOIN flow_work_flow_instantiate fwfi ON bmd.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+                LEFT JOIN bd_material bm ON bmd.pid = bm.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.basedata.BdMaterialDetail' AND sti.table_name = '成品档案' AND bmd.status = 1 AND bm.material_group = 0 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 辅料
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, bm.id, bm.number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, bm.status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM bd_material bm
+                LEFT JOIN flow_work_flow_instantiate fwfi ON bm.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.basedata.BdMaterial' AND sti.table_name = '辅料档案' AND bm.status = 1 AND bm.material_group = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 原材料
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, bm.id, bm.number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, bm.status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM bd_material bm
+                LEFT JOIN flow_work_flow_instantiate fwfi ON bm.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.basedata.BdMaterial' AND sti.table_name = '原材料档案' AND bm.status = 1 AND bm.material_group = 2 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 生产订单
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, pm.id, pm.no as number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, pm.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM prd_mo pm
+                LEFT JOIN flow_work_flow_instantiate fwfi ON pm.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.prd.entity.PrdMo' AND sti.table_name = '生产订单' AND pm.bill_status = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 裁床单
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, pc.id, pc.no as number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, pc.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM prd_cutting pc
+                LEFT JOIN flow_work_flow_instantiate fwfi ON pc.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.prd.entity.PrdCutting' AND sti.table_name = '裁床单' AND pc.bill_status = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 采购订单
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, ppo.id, ppo.no as number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, ppo.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM pur_purchase_order ppo
+                LEFT JOIN flow_work_flow_instantiate fwfi ON ppo.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+            sti.table_code = 'com.fenglei.model.pur.entity.PurPurchaseOrder' AND sti.table_name = '采购订单' AND ppo.bill_status = 1 AND fcn.status = 1
+
+            UNION ALL
+
+        -- 采购入库单
+        SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, ppi.id, ppi.no as number,
+        fwfi.create_time as application_time
+        , fwfi.initiator_id as applicant_by, su.nickname as applicant, ppi.bill_status as status, fnu.target_id as
+        node_user_id, nu.nickname as node_user
+        FROM pur_purchase_instock ppi
+        LEFT JOIN flow_work_flow_instantiate fwfi ON ppi.id = fwfi.form_id
+        LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+        LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+        LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+        LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+        LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+        LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+        WHERE
+        sti.table_code = 'com.fenglei.model.pur.entity.PurPurchaseInstock' AND sti.table_name = '采购入库单' AND
+        ppi.bill_status = 1 AND fcn.status = 1
+        UNION ALL
+
+        -- 成品出库单
+        SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, ppi.id, ppi.no as number,
+        fwfi.create_time as application_time
+        , fwfi.initiator_id as applicant_by, su.nickname as applicant, ppi.bill_status as status, fnu.target_id as
+        node_user_id, nu.nickname as node_user
+        FROM oms_sale_out_stock ppi
+        LEFT JOIN flow_work_flow_instantiate fwfi ON ppi.id = fwfi.form_id
+        LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+        LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+        LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+        LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+        LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+        LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+        WHERE
+        sti.table_code = 'com.fenglei.model.oms.entity.OmsSaleOutStock' AND sti.table_name = '成品出库单' AND
+        ppi.bill_status = 1 AND fcn.status = 1
+
+        UNION ALL
+
+        -- 其他入库单
+        SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, pc.id, pc.no as number, fwfi.create_time as application_time
+        , fwfi.initiator_id as applicant_by, su.nickname as applicant, pc.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+        FROM inv_other_in_stock pc
+        LEFT JOIN flow_work_flow_instantiate fwfi ON pc.id = fwfi.form_id
+        LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+        LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+        LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+        LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+        LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+        LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+        WHERE
+        sti.table_code = 'com.fenglei.model.inv.entity.InvOtherInStock' AND sti.table_name = '其他入库单' AND pc.bill_status = 1 AND fcn.status = 1
+
+        UNION ALL
+
+        -- 其他出库单
+        SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, pc.id, pc.no as number, fwfi.create_time as application_time
+        , fwfi.initiator_id as applicant_by, su.nickname as applicant, pc.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+        FROM inv_other_out_stock pc
+        LEFT JOIN flow_work_flow_instantiate fwfi ON pc.id = fwfi.form_id
+        LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+        LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+        LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+        LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+        LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+        LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+        WHERE
+        sti.table_code = 'com.fenglei.model.inv.entity.InvOtherOutStock' AND sti.table_name = '其他出库单' AND pc.bill_status = 1 AND fcn.status = 1
+
+
+        ) tb1
+        <where>
+            1 = 1
+            <if test="approving.tableInfoId != null and approving.tableInfoId != ''">
+                and table_info_id = #{ approving.tableInfoId }
+            </if>
+            <if test="approving.number != null and approving.number != ''">
+                and number like concat('%', #{ approving.number }, '%')
+            </if>
+            <if test="approving.nodeUserId != null">
+                and node_user_id = #{ approving.nodeUserId }
+            </if>
+        </where>
+        ORDER BY application_time
+    </select>
+
+    <select id="getList" resultType="com.fenglei.model.system.entity.Approving">
+        SELECT *
+        FROM (
+            -- 工价模板
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, bw.id, bw.number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, bw.status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM bd_temp_wages bw
+                LEFT JOIN flow_work_flow_instantiate fwfi ON bw.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.basedata.BdTempWages' AND bw.status = 1 AND bw.enabled = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 成品
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, bmd.id, bmd.number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, bmd.status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM bd_material_detail bmd
+                LEFT JOIN flow_work_flow_instantiate fwfi ON bmd.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+                LEFT JOIN bd_material bm ON bmd.pid = bm.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.basedata.BdMaterialDetail' AND sti.table_name = '成品档案' AND bmd.status = 1 AND bm.material_group = 0 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 辅料
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, bm.id, bm.number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, bm.status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM bd_material bm
+                LEFT JOIN flow_work_flow_instantiate fwfi ON bm.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.basedata.BdMaterial' AND sti.table_name = '辅料档案' AND bm.status = 1 AND bm.material_group = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 原材料
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, bm.id, bm.number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, bm.status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM bd_material bm
+                LEFT JOIN flow_work_flow_instantiate fwfi ON bm.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.basedata.BdMaterial' AND sti.table_name = '原材料档案' AND bm.status = 1 AND bm.material_group = 2 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 生产订单
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, pm.id, pm.no as number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, pm.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM prd_mo pm
+                LEFT JOIN flow_work_flow_instantiate fwfi ON pm.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.prd.entity.PrdMo' AND sti.table_name = '生产订单' AND pm.bill_status = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 裁床单
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, pc.id, pc.no as number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, pc.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM prd_cutting pc
+                LEFT JOIN flow_work_flow_instantiate fwfi ON pc.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+                sti.table_code = 'com.fenglei.model.prd.entity.PrdCutting' AND sti.table_name = '裁床单' AND pc.bill_status = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 采购订单
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, ppo.id, ppo.no as number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, ppo.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM pur_purchase_order ppo
+                LEFT JOIN flow_work_flow_instantiate fwfi ON ppo.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+            sti.table_code = 'com.fenglei.model.pur.entity.PurPurchaseOrder' AND sti.table_name = '采购订单' AND ppo.bill_status = 1 AND fcn.status = 1
+
+            UNION ALL
+
+            -- 采购入库单
+            SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, ppi.id, ppi.no as number, fwfi.create_time as application_time
+                 , fwfi.initiator_id as applicant_by, su.nickname as applicant, ppi.bill_status as status, fnu.target_id as node_user_id, nu.nickname as node_user
+            FROM pur_purchase_instock ppi
+                LEFT JOIN flow_work_flow_instantiate fwfi ON ppi.id = fwfi.form_id
+                LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+                LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+                LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+                LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+                LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+                LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+            WHERE
+            sti.table_code = 'com.fenglei.model.pur.entity.PurPurchaseInstock' AND sti.table_name = '采购入库单' AND ppi.bill_status = 1 AND fcn.status = 1
+
+        UNION ALL
+        -- 成品出库单
+        SELECT fwf.flow_name as name, sti.table_name as form_name, sti.id as table_info_id, ppi.id, ppi.no as number,
+        fwfi.create_time as application_time
+        , fwfi.initiator_id as applicant_by, su.nickname as applicant, ppi.bill_status as status, fnu.target_id as
+        node_user_id, nu.nickname as node_user
+        FROM oms_sale_out_stock ppi
+        LEFT JOIN flow_work_flow_instantiate fwfi ON ppi.id = fwfi.form_id
+        LEFT JOIN flow_work_flow fwf ON fwfi.work_flow_id = fwf.id
+        LEFT JOIN sys_table_info sti ON fwf.table_id = sti.id
+        LEFT JOIN sys_user su ON fwfi.initiator_id = su.id
+        LEFT JOIN flow_child_node fcn ON fwfi.id = fcn.work_flow_instantiate_Id
+        LEFT JOIN flow_node_user fnu ON fcn.id = fnu.child_node_id
+        LEFT JOIN sys_user nu ON fnu.target_id = nu.id
+        WHERE
+        sti.table_code = 'com.fenglei.model.oms.entity.OmsSaleOutStock' AND sti.table_name = '成品出库单' AND
+        ppi.bill_status = 1 AND fcn.status = 1
+        ) tb1
+        <where>
+            1 = 1
+            <if test="approving.tableInfoId != null and approving.tableInfoId != ''">
+                and table_info_id = #{ approving.tableInfoId }
+            </if>
+            <if test="approving.number != null and approving.number != ''">
+                and number like concat('%', #{ approving.number }, '%')
+            </if>
+            <if test="approving.nodeUserId != null">
+                and node_user_id = #{ approving.nodeUserId }
+            </if>
+        </where>
+    </select>
+</mapper>

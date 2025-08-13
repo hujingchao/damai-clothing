@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdRepositoryMapper">
+
+    <select id="getPage" resultType="com.fenglei.model.basedata.BdRepository">
+        SELECT rpsy.*, count(rpsy.id) as position_count
+        FROM bd_repository rpsy
+            LEFT JOIN bd_position posi ON rpsy.id = posi.pid
+        <where>
+            rpsy.deleted = 0
+            <if test="bdRepository.keyword != null and bdRepository.keyword != ''">
+                and (rpsy.no like concat('%', #{ bdRepository.keyword }, '%') or rpsy.name like concat('%', #{ bdRepository.keyword }, '%')  or rpsy.address like concat('%', #{ bdRepository.keyword }, '%'))
+            </if>
+            <if test="bdRepository.no != null and bdRepository.no != ''">
+                and rpsy.no like concat('%', #{ bdRepository.no }, '%')
+            </if>
+            <if test="bdRepository.name != null and bdRepository.name != ''">
+                and rpsy.name like concat('%', #{ bdRepository.name }, '%')
+            </if>
+            <if test="bdRepository.address != null and bdRepository.address != ''">
+                and rpsy.address like concat('%', #{ bdRepository.address }, '%')
+            </if>
+        </where>
+        GROUP BY rpsy.id
+        ORDER BY rpsy.name ASC
+    </select>
+
+    <select id="getList" resultType="com.fenglei.model.basedata.BdRepository">
+        SELECT rpsy.*, count(rpsy.id) as position_count
+        FROM bd_repository rpsy
+        LEFT JOIN bd_position posi ON rpsy.id = posi.pid
+        <where>
+            rpsy.deleted = 0
+            <if test="bdRepository.keyword != null and bdRepository.keyword != ''">
+                and (rpsy.no like concat('%', #{ bdRepository.keyword }, '%') or rpsy.name like concat('%',
+                #{ bdRepository.keyword }, '%') or rpsy.address like concat('%', #{ bdRepository.keyword }, '%'))
+            </if>
+            <if test="bdRepository.no != null and bdRepository.no != ''">
+                and rpsy.no like concat('%', #{ bdRepository.no }, '%')
+            </if>
+            <if test="bdRepository.name != null and bdRepository.name != ''">
+                and rpsy.name like concat('%', #{ bdRepository.name }, '%')
+            </if>
+            <if test="bdRepository.address != null and bdRepository.address != ''">
+                and rpsy.address like concat('%', #{ bdRepository.address }, '%')
+            </if>
+        </where>
+        GROUP BY rpsy.id
+        ORDER BY rpsy.name ASC
+    </select>
+</mapper>

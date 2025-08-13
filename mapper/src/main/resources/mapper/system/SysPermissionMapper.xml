@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.system.SysPermissionMapper">
+  <select id="listPermsByRoleIds" resultType="java.lang.String">
+    SELECT
+        perm
+    FROM
+        sys_permission t1
+    LEFT JOIN
+        sys_role_permission t2 ON t1.id = t2.permission_id
+    WHERE
+        t1.type = #{type}
+        <if test="roleIds != null">
+          AND t2.role_id IN
+          <foreach collection='roleIds' item='roleId' open='(' separator=',' close=')'>
+            #{roleId}
+          </foreach>
+        </if>
+  </select>
+
+
+</mapper>

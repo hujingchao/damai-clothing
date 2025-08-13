@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdMaterialSupplierMapper">
+
+    <resultMap id="materialSupplierMap" type="com.fenglei.model.basedata.BdMaterialSupplier">
+        <result property="id" column="id"></result>
+        <result property="pid" column="pid"></result>
+
+        <result property="supplierId" column="supplier_id"></result>
+        <result property="isDefault" column="is_default"></result>
+        <result property="price" column="price"></result>
+
+        <association property="bdSupplier" javaType="com.fenglei.model.basedata.BdSupplier">
+            <result property="number" column="number"></result>
+            <result property="name" column="name"></result>
+            <result property="contact" column="contact"></result>
+            <result property="contactNumber" column="contact_number"></result>
+            <result property="address" column="address"></result>
+            <result property="remark" column="remark"></result>
+        </association>
+    </resultMap>
+
+    <select id="getList" resultMap="materialSupplierMap">
+        SELECT bms.*, bs.number, bs.name, bs.contact, bs.contact_number, bs.address, bs.remark
+        FROM bd_material_supplier bms
+            LEFT JOIN bd_material bm ON bms.pid = bm.id
+            LEFT JOIN bd_supplier bs ON bms.supplier_id = bs.id
+        <where>
+            bms.deleted = 0
+            <if test="bdMaterialSupplier.pids != null and bdMaterialSupplier.pids.size > 0">
+                and bms.pid in
+                <foreach collection="bdMaterialSupplier.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdMaterialSupplier.pid != null and bdMaterialSupplier.pid != ''">
+                and bms.pid = #{ bdMaterialSupplier.pid }
+            </if>
+        </where>
+    </select>
+</mapper>

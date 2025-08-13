@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.inv.InvIoBillMapper">
+
+    <select id="myPage" resultType="com.fenglei.model.inv.entity.InvIoBill">
+        select iib.id,
+        iib.material_detail_id,
+        iib.qty,
+        iib.biz_date,
+        iib.pi_qty,
+        iib.repository_id,
+        iib.position_id,
+        iib.src_id,
+        iib.src_type,
+        iib.src_item_id,
+        iib.io,
+        bmd.number as sjNumber,
+        bmd.color_id,
+        bmc.color,
+        bmd.specification_id,
+        bms.specification,
+        bm.id as productId,
+        bm.name as productName,
+        bm.number as productNum,
+        br.name as repositoryName,
+        bp.name as positionName,
+        iib.lot,
+        CASE
+        WHEN bm.material_group = 0 THEN
+        '成品'
+        WHEN bm.material_group = 1 THEN
+        '辅料'
+        WHEN bm.material_group = 2 THEN
+        '原材料'
+        END as materialGroupName
+        from inv_io_bill iib
+        left join bd_material_detail as bmd on iib.material_detail_id = bmd.id
+        left join bd_material_color as bmc on bmd.color_id = bmc.id
+        left join bd_material_specification as bms on bmd.specification_id = bms.id
+        left join bd_material as bm on bmd.pid = bm.id
+        left join bd_repository as br on iib.repository_id = br.id
+        left join bd_position as bp on iib.position_id = bp.id
+        <where>
+            <if test="invIoBill.srcType != null and invIoBill.srcType.trim() != ''">
+                and iib.src_type = #{invIoBill.srcType}
+            </if>
+            <if test="invIoBill.beginDate != null and invIoBill.beginDate.trim() != ''">
+                and date_format(iib.biz_date, '%Y-%m-%d') &gt;= #{invIoBill.beginDate}
+            </if>
+            <if test="invIoBill.endDate != null and invIoBill.endDate.trim() != ''">
+                and date_format(iib.biz_date, '%Y-%m-%d') &lt;= #{invIoBill.endDate}
+            </if>
+            <if test="invIoBill.materialGroup != null and invIoBill.materialGroup.trim() != ''">
+                and bm.material_group = #{invIoBill.materialGroup}
+            </if>
+            <if test="invIoBill.productName != null and invIoBill.productName.trim() != ''">
+                and bm.name like concat('%',#{invIoBill.productName},'%')
+            </if>
+            <if test="invIoBill.color != null and invIoBill.color.trim() != ''">
+                and bmc.color like concat('%', #{invIoBill.color}, '%')
+            </if>
+            <if test="invIoBill.specification != null and invIoBill.specification.trim() != ''">
+                and bms.specification like concat('%', #{invIoBill.specification}, '%')
+            </if>
+            <if test="invIoBill.sjNumber != null and invIoBill.sjNumber.trim() != ''">
+                and (bmd.number like concat('%', #{invIoBill.sjNumber}, '%') or bm.number like concat('%', #{invIoBill.sjNumber}, '%'))
+            </if>
+        </where>
+        order by iib.biz_date desc
+    </select>
+</mapper>

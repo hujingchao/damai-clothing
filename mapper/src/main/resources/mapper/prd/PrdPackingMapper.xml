@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.prd.PrdPackingMapper">
+
+    <select id="wxPage" resultType="com.fenglei.model.prd.vo.PrdPackingItemVo">
+        select ppis.id as packId,
+        ppis.no as packNo,
+        ppis.packer_id,
+        ppis.packer,
+        ppis.pack_time,
+        ppis.remark,
+        ppis.bill_status,
+        ppisi.id as packItemId,
+        ppisi.set_top,
+        ppisi.product_id,
+        ppisi.main_pic_id,
+        sf.url as mainPic,
+        bm.name as productName,
+        bm.number as productNum,
+        ppisi.ticket_item_id,
+        ppisi.ticket_no,
+        ppisi.pack_num
+        from prd_packing_item ppisi
+        left join prd_packing ppis on ppisi.pid = ppis.id
+        left join bd_material bm on bm.id = ppisi.product_id
+        left join sys_files sf on sf.id = ppisi.main_pic_id
+        <where>
+
+            <if test="itemVo.keyWord !=null and itemVo.keyWord.trim() !=''.toString()">
+                and ( ppis.no like concat ('%', #{itemVo.keyWord}, '%')
+                or
+                ppis.packer like concat ('%', #{itemVo.keyWord}, '%')
+                )
+            </if>
+            <if test="itemVo.packNo !=null and itemVo.packNo.trim() !=''.toString()">
+                and ppis.no like concat('%', #{itemVo.packNo }, '%')
+            </if>
+            <if test="itemVo.packTime !=null and itemVo.packTime.trim() !=''.toString()">
+                and date_format(ppis.pack_time, '%Y-%m-%d') = #{ itemVo.packTime}
+            </if>
+            <if test="itemVo.packerId !=null and itemVo.packerId.trim() !=''.toString()">
+                and ppis.packer_id = #{itemVo.packerId }
+            </if>
+            <if test="itemVo.billStatus !=null and itemVo.billStatus !='4'.toString() ">
+                and ppis.bill_status = #{itemVo.billStatus}
+            </if>
+            <if test="itemVo.ticketNo !=null and itemVo.ticketNo.trim() !=''.toString()">
+                and ppisi.ticket_no like  concat('%', #{itemVo.ticketNo}, '%')
+            </if>
+            <if test="itemVo.productName !=null and itemVo.productName.trim() !=''.toString()">
+                and bm.name like  concat('%', #{itemVo.productName}, '%')
+            </if>
+        </where>
+        order by ppisi.set_top desc
+    </select>
+
+    <resultMap id="itemDetailMap" type="com.fenglei.model.prd.entity.PrdPacking">
+        <collection property="itemList" select="selectItem" column="{itemId=itemId}"
+                    javaType="java.util.ArrayList" ofType="com.fenglei.model.prd.entity.PrdPackingItem">
+        </collection>
+    </resultMap>
+
+    <select id="itemDetail" resultMap="itemDetailMap">
+        select #{itemId} as itemId,
+               ppis.*,
+               su.username   as creator
+        from prd_packing ppis
+                 left join sys_user su on su.id = ppis.creator_id
+        where ppis.id = #{id}
+    </select>
+
+    <select id="selectItem"  resultType="com.fenglei.model.prd.entity.PrdPackingItem">
+        select ppisi.*, pct.color_id, pct.color, pct.specification, bm.name as productName, bm.number as productNum,sf.url as mainPic
+        from prd_packing_item ppisi
+                 left join prd_cutting_ticket_item pcti on pcti.id = ppisi.ticket_item_id
+                 left join prd_cutting_ticket pct on pct.id = pcti.pid
+                 left join bd_material bm on bm.id = ppisi.product_id
+                 left join sys_files as sf on bm.main_pic_id = sf.id
+        where ppisi.id = #{itemId}
+    </select>
+
+
+
+</mapper>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdCustomerMapper">
+
+    <select id="getPage" resultType="com.fenglei.model.basedata.BdCustomer">
+        SELECT bc.*, bcc.name as customer_cate_name
+             , ctr.username as creator, utr.username as updater
+        FROM bd_customer bc
+            LEFT JOIN bd_customer_cate bcc ON bc.customer_cate_id = bcc.id
+            LEFT JOIN sys_user ctr ON bc.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bc.updater_id = utr.id
+        <where>
+            bc.deleted = 0
+            <if test="bdCustomer.number != null and bdCustomer.number != ''">
+                and bc.number like concat('%', #{ bdCustomer.number }, '%')
+            </if>
+            <if test="bdCustomer.name != null and bdCustomer.name != ''">
+                and bc.name like concat('%', #{ bdCustomer.name }, '%')
+            </if>
+            <if test="bdCustomer.simpleName != null and bdCustomer.simpleName != ''">
+                and bc.simple_name like concat('%', #{ bdCustomer.simpleName }, '%')
+            </if>
+            <if test="bdCustomer.contactNumber != null and bdCustomer.contactNumber != ''">
+                and bc.contact_number like concat('%', #{ bdCustomer.contactNumber }, '%')
+            </if>
+            <if test="bdCustomer.commFilter != null and bdCustomer.commFilter != ''">
+                and (
+                    bc.number like concat('%', #{ bdCustomer.commFilter }, '%')
+                     or bc.name like concat('%', #{ bdCustomer.commFilter }, '%')
+                     or bc.simple_name like concat('%', #{ bdCustomer.commFilter }, '%')
+                     or bc.contact_number like concat('%', #{ bdCustomer.commFilter }, '%')
+                 )
+            </if>
+            <if test="bdCustomer.ids != null and bdCustomer.ids.size > 0">
+                and bc.id in
+                <foreach collection="bdCustomer.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="bdCustomer.excludeIds != null and bdCustomer.excludeIds.size > 0">
+                and bc.id not in
+                <foreach collection="bdCustomer.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+            <if test="bdCustomer.customerCateId != null and bdCustomer.customerCateId != ''">
+                and bc.customer_cate_id like concat('%', #{ bdCustomer.customerCateId }, '%')
+            </if>
+            <if test="bdCustomer.customerCateIds != null and bdCustomer.customerCateIds.size > 0">
+                and bc.customer_cate_id in
+                <foreach item="customerCateId" collection="bdCustomer.customerCateIds"
+                         open="(" separator="," close=")">
+                    #{ customerCateId }
+                </foreach>
+            </if>
+        </where>
+        ORDER BY bc.create_time DESC
+    </select>
+
+    <select id="getList" resultType="com.fenglei.model.basedata.BdCustomer">
+        SELECT bc.*, bcc.name as customer_cate_name
+             , ctr.username as creator, utr.username as updater
+        FROM bd_customer bc
+            LEFT JOIN bd_customer_cate bcc ON bc.customer_cate_id = bcc.id
+            LEFT JOIN sys_user ctr ON bc.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bc.updater_id = utr.id
+        <where>
+            bc.deleted = 0
+            <if test="bdCustomer.number != null and bdCustomer.number != ''">
+                and bc.number like concat('%', #{ bdCustomer.number }, '%')
+            </if>
+            <if test="bdCustomer.name != null and bdCustomer.name != ''">
+                and bc.name like concat('%', #{ bdCustomer.name }, '%')
+            </if>
+            <if test="bdCustomer.simpleName != null and bdCustomer.simpleName != ''">
+                and bc.simple_name like concat('%', #{ bdCustomer.simpleName }, '%')
+            </if>
+            <if test="bdCustomer.contactNumber != null and bdCustomer.contactNumber != ''">
+                and bc.contact_number like concat('%', #{ bdCustomer.contactNumber }, '%')
+            </if>
+            <if test="bdCustomer.commFilter != null and bdCustomer.commFilter != ''">
+                and (
+                    bc.number like concat('%', #{ bdCustomer.commFilter }, '%')
+                     or bc.name like concat('%', #{ bdCustomer.commFilter }, '%')
+                     or bc.simple_name like concat('%', #{ bdCustomer.commFilter }, '%')
+                     or bc.contact_number like concat('%', #{ bdCustomer.commFilter }, '%')
+                )
+            </if>
+            <if test="bdCustomer.ids != null and bdCustomer.ids.size > 0">
+                and bc.id in
+                <foreach collection="bdCustomer.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="bdCustomer.excludeIds != null and bdCustomer.excludeIds.size > 0">
+                and bc.id not in
+                <foreach collection="bdCustomer.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+            <if test="bdCustomer.customerCateId != null and bdCustomer.customerCateId != ''">
+                and bc.customer_cate_id like concat('%', #{ bdCustomer.customerCateId }, '%')
+            </if>
+            <if test="bdCustomer.customerCateIds != null and bdCustomer.customerCateIds.size > 0">
+                and bc.customer_cate_id in
+                <foreach item="customerCateId" collection="bdCustomer.customerCateIds"
+                         open="(" separator="," close=")">
+                    #{ customerCateId }
+                </foreach>
+            </if>
+        </where>
+        ORDER BY bc.create_time DESC
+    </select>
+
+    <select id="infoById" resultType="com.fenglei.model.basedata.BdCustomer">
+        SELECT bc.*, bcc.name as customer_cate_name
+             , ctr.username as creator, utr.username as updater
+        FROM bd_customer bc
+            LEFT JOIN bd_customer_cate bcc ON bc.customer_cate_id = bcc.id
+            LEFT JOIN sys_user ctr ON bc.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bc.updater_id = utr.id
+        <where>
+            bc.id = #{ id }
+        </where>
+    </select>
+</mapper>

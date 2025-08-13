@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.prd.PrdMoSecondaryProcessMapper">
+
+    <resultMap id="moSecondaryProcessMap" type="com.fenglei.model.prd.entity.PrdMoSecondaryProcess">
+        <result property="id" column="id" />
+        <result property="pid" column="pid" />
+        <result property="seq" column="seq" />
+        <result property="processId" column="process_id" />
+        <result property="processName" column="process_name" />
+        <result property="technique" column="technique" />
+        <result property="quantity" column="quantity" />
+        <result property="unitPrice" column="unit_price" />
+        <result property="usedPart" column="used_part" />
+        <result property="supplierId" column="supplier_id" />
+        <result property="remark" column="remark" />
+
+        <association property="bdSupplier" javaType="com.fenglei.model.basedata.BdSupplier">
+            <result property="id" column="supplier_id" />
+            <result property="number" column="supplier_number" />
+            <result property="name" column="supplier_name" />
+            <result property="contact" column="supplier_contact" />
+            <result property="contactNumber" column="supplier_contact_number" />
+            <result property="address" column="supplier_address" />
+        </association>
+    </resultMap>
+
+    <select id="listByPid" resultMap="moSecondaryProcessMap">
+        select pmsp.*
+             , supp.number as supplier_number, supp.name as supplier_name
+             , supp.contact as supplier_contact, supp.contact_number as supplier_contact_number, supp.address as supplier_address
+        from prd_mo_secondary_process pmsp
+                 left join bd_supplier supp on pmsp.supplier_id = supp.id
+        where pmsp.pid = #{pid}
+    </select>
+</mapper>

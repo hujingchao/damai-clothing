@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.system.SysUserMapper">
+
+    <select id="getUserByName" resultType="com.fenglei.model.system.entity.SysUser">
+        select id,
+               username,
+               nickname,
+               gender,
+               `password`,
+               dept_id,
+               avatar,
+               mobile,
+               `status` as enabled,
+               email,
+               phone,
+               sys
+        from sys_user
+        where username = #{username}
+    </select>
+</mapper>
+

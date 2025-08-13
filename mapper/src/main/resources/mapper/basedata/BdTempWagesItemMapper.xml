@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdTempWagesItemMapper">
+
+    <select id="getList" resultType="com.fenglei.model.basedata.BdTempWagesItem">
+        SELECT bwi.*
+             , bpd.number as procedure_number, bpd.name as procedure_name, bpd.remark as procedure_remark
+        FROM bd_temp_wages_item bwi
+            LEFT JOIN bd_procedure bpd ON bwi.procedure_id = bpd.id
+        <where>
+            1 = 1
+            <if test="bdTempWagesItem.pids != null and bdTempWagesItem.pids.size > 0">
+                and bwi.pid in
+                <foreach collection="bdTempWagesItem.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdTempWagesItem.pid != null and bdTempWagesItem.pid != ''">
+                and bwi.pid = #{ bdTempWagesItem.pid }
+            </if>
+        </where>
+        ORDER BY bwi.no, bwi.id ASC
+    </select>
+</mapper>

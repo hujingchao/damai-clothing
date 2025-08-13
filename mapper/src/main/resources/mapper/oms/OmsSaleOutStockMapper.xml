@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.oms.OmsSaleOutStockMapper">
+   <select id="getOutStockSummary" resultType="com.fenglei.model.oms.entity.dto.OmsSaleOutStockDTO">
+       SELECT
+       a.out_stock_date,
+       bmd.number sjNumber,
+       bm.number materialNumber,
+       bm.`name` materialName,
+       bmc.color,
+       bms.specification,
+       count(b.lot) lotQty,
+       sum(c.out_stock_qty) qty
+       FROM
+       oms_sale_out_stock a
+       LEFT JOIN oms_sale_out_stock_item b ON b.pid = a.id
+       LEFT JOIN oms_sale_out_stock_item_detail c ON c.pid = b.id
+       LEFT JOIN bd_material_detail bmd ON c.material_detail_id = bmd.id
+       LEFT JOIN bd_material bm ON bmd.pid = bm.id
+       LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+       LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+       LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+       LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+       <where>
+           a.bill_status =2
+           <if test="omsSaleOutStockDTO.outStockDateStart != null and omsSaleOutStockDTO.outStockDateStart.trim() != ''">
+               and date_format(a.out_stock_date, '%Y-%m-%d') &gt;= #{omsSaleOutStockDTO.outStockDateStart}
+           </if>
+           <if test="omsSaleOutStockDTO.outStockDateEnd != null and omsSaleOutStockDTO.outStockDateEnd.trim() != ''">
+               and date_format(a.out_stock_date, '%Y-%m-%d') &lt;= #{omsSaleOutStockDTO.outStockDateEnd}
+           </if>
+           <if test="omsSaleOutStockDTO.sjNumber !=null and omsSaleOutStockDTO.sjNumber.trim() != ''">
+               and bmd.number like concat('%', #{omsSaleOutStockDTO.sjNumber}, '%')
+           </if>
+           <if test="omsSaleOutStockDTO.materialNumber !=null and omsSaleOutStockDTO.materialNumber.trim() != ''">
+               and bm.number like concat('%', #{omsSaleOutStockDTO.materialNumber}, '%')
+           </if>
+           <if test="omsSaleOutStockDTO.materialName !=null and omsSaleOutStockDTO.materialName.trim() != ''">
+               and bm.name like concat('%', #{omsSaleOutStockDTO.materialName}, '%')
+           </if>
+       </where>
+       GROUP BY a.out_stock_date,c.material_detail_id
+   </select>
+</mapper>

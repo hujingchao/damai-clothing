@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdMaterialRouteSpecialMapper">
+
+    <resultMap id="materialRouteSpecialMap" type="com.fenglei.model.basedata.BdMaterialRouteSpecial">
+        <result property="id" column="id"></result>
+        <result property="pid" column="pid"></result>
+
+        <result property="staffId" column="staffId"></result>
+        <result property="price" column="price"></result>
+        <result property="remark" column="remark"></result>
+        <!--        columnPrefix="raw_"-->
+        <association property="staff" javaType="com.fenglei.model.system.entity.SysUser">
+            <result property="username" column="staff_username"></result>
+            <result property="nickname" column="staff_nickname"></result>
+            <result property="gender" column="staff_gender"></result>
+            <result property="avatar" column="staff_avatar"></result>
+            <result property="mobile" column="staff_mobile"></result>
+            <result property="email" column="staff_email"></result>
+        </association>
+    </resultMap>
+
+    <select id="getList" resultMap="materialRouteSpecialMap">
+        SELECT DISTINCT bmr.*, su.username as staff_username, su.nickname as staff_nickname, su.gender as staff_gender
+        , su.avatar as staff_avatar, su.mobile as staff_mobile, su.email as staff_email
+        FROM bd_material_route_special bmrs
+            LEFT JOIN bd_material_route bmr ON bmrs.pid = bmr.id
+            LEFT JOIN sys_user su ON bmrs.staff_id = su.id
+        <where>
+            bmrs.deleted = 0
+            <if test="bdMaterialRouteSpecial.pids != null and bdMaterialRouteSpecial.pids.size > 0">
+                and bmrs.pid in
+                <foreach collection="bdMaterialRouteSpecial.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

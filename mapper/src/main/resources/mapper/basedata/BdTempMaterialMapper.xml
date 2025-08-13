@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdTempMaterialMapper">
+
+    <resultMap id="materialMap" type="com.fenglei.model.basedata.BdTempMaterial">
+        <result property="id" column="id"></result>
+        <result property="status" column="status"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="creator" column="creator"></result>
+        <result property="creatorId" column="creator_id"></result>
+        <result property="updateTime" column="update_time"></result>
+        <result property="updater" column="updater"></result>
+        <result property="updaterId" column="updater_id"></result>
+        <result property="auditTime" column="audit_time"></result>
+        <result property="auditorId" column="auditor_id"></result>
+        <result property="auditor" column="auditor"></result>
+
+        <result property="number" column="number"></result>
+        <result property="name" column="name"></result>
+        <result property="materialGroup" column="material_group"></result>
+        <result property="unitId" column="unit_id"></result>
+        <result property="unitName" column="unit_name"></result>
+        <result property="remark" column="remark"></result>
+        <result property="mainPicId" column="main_pic_id"></result>
+        <result property="wageId" column="wage_id"></result>
+        <result property="content" column="content"></result>
+        <result property="originalId" column="original_id"></result>
+        <result property="color" column="color"></result>
+        <result property="specification" column="specification"></result>
+        <result property="sjNumber" column="sj_number"></result>
+
+        <association property="mainPic" javaType="com.fenglei.model.system.entity.SysFiles">
+            <result property="fileName" column="main_file_name"></result>
+            <result property="url" column="main_url"></result>
+            <result property="size" column="main_size"></result>
+            <result property="fileType" column="main_file_type"></result>
+            <result property="disableDownload" column="main_disable_download"></result>
+            <result property="alias" column="main_alias"></result>
+            <result property="remark" column="main_remark"></result>
+        </association>
+    </resultMap>
+
+    <select id="getPage" resultMap="materialMap">
+        SELECT bm.*, bu.name as unit_name
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+             , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+            <if test="bdTempMaterial.materialGroup != null and bdTempMaterial.materialGroup == 0">
+                , bmd.number as sj_number, bmc.color, bms.specification
+            </if>
+        FROM bd_temp_material bm
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN sys_user ctr ON bm.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bm.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bm.auditor_id = atr.id
+            LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+            <if test="bdTempMaterial.materialGroup != null and bdTempMaterial.materialGroup == 0">
+                LEFT JOIN bd_temp_material_detail bmd ON bm.id = bmd.pid
+                LEFT JOIN bd_temp_material_color bmc ON bmd.color_id = bmc.id
+                LEFT JOIN bd_temp_material_specification bms ON bmd.specification_id = bms.id
+            </if>
+        <where>
+            1 = 1
+            <if test="bdTempMaterial.number != null and bdTempMaterial.number != ''">
+                and bm.number like concat('%', #{ bdTempMaterial.number }, '%')
+            </if>
+            <if test="bdTempMaterial.name != null and bdTempMaterial.name != ''">
+                and bm.name like concat('%', #{ bdTempMaterial.name }, '%')
+            </if>
+            <if test="bdTempMaterial.materialGroup != null">
+                and bm.material_group = #{ bdTempMaterial.materialGroup }
+            </if>
+            <if test="bdTempMaterial.ids != null and bdTempMaterial.ids.size > 0">
+                and bm.id in
+                <foreach collection="bdTempMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="bdTempMaterial.inStatus != null and bdTempMaterial.inStatus.size > 0">
+                and bm.status in
+                <foreach collection="bdTempMaterial.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+            <if test="bdTempMaterial.inMaterialGroup != null and bdTempMaterial.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="bdTempMaterial.inMaterialGroup" item="materialGroup" index="index" open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="bdTempMaterial.excludeIds != null and bdTempMaterial.excludeIds.size > 0">
+                and bm.id not in
+                <foreach collection="bdTempMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+        </where>
+        ORDER BY bm.create_time DESC
+    </select>
+
+    <select id="getList" resultMap="materialMap">
+        SELECT bm.*, bu.name as unit_name
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+             , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+            <if test="bdTempMaterial.materialGroup != null and bdTempMaterial.materialGroup == 0">
+                , bmd.number as sj_number, bmc.color, bms.specification
+            </if>
+        FROM bd_temp_material bm
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN sys_user ctr ON bm.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bm.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bm.auditor_id = atr.id
+            LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+            <if test="bdTempMaterial.materialGroup != null and bdTempMaterial.materialGroup == 0">
+                LEFT JOIN bd_temp_material_detail bmd ON bm.id = bmd.pid
+                LEFT JOIN bd_temp_material_color bmc ON bmd.color_id = bmc.id
+                LEFT JOIN bd_temp_material_specification bms ON bmd.specification_id = bms.id
+            </if>
+        <where>
+            1 = 1
+            <if test="bdTempMaterial.materialGroup != null">
+                and bm.material_group = #{ bdTempMaterial.materialGroup }
+            </if>
+            <if test="bdTempMaterial.excludeIds != null and bdTempMaterial.excludeIds.size > 0">
+                and bm.id not in
+                <foreach collection="bdTempMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+            <if test="bdTempMaterial.commFilter != null and bdTempMaterial.commFilter != ''">
+                and (
+                    bm.number like concat('%', #{ bdTempMaterial.commFilter }, '%')
+                    or bm.name like concat('%', #{ bdTempMaterial.commFilter }, '%')
+                    <if test="bdTempMaterial.ids != null and bdTempMaterial.ids.size > 0">
+                        or bm.id in
+                        <foreach collection="bdTempMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                            #{ id }
+                        </foreach>
+                    </if>
+                )
+            </if>
+            <if test="bdTempMaterial.commFilter == null or bdTempMaterial.commFilter == ''">
+                <if test="bdTempMaterial.number != null and bdTempMaterial.number != ''">
+                    and bm.number like concat('%', #{ bdTempMaterial.number }, '%')
+                </if>
+                <if test="bdTempMaterial.name != null and bdTempMaterial.name != ''">
+                    and bm.name like concat('%', #{ bdTempMaterial.name }, '%')
+                </if>
+                <if test="bdTempMaterial.ids != null and bdTempMaterial.ids.size > 0">
+                    and bm.id in
+                    <foreach collection="bdTempMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                        #{ id }
+                    </foreach>
+                </if>
+                <if test="bdTempMaterial.excludeIds != null and bdTempMaterial.excludeIds.size > 0">
+                    and bm.id not in
+                    <foreach collection="bdTempMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                        #{ excludeId }
+                    </foreach>
+                </if>
+            </if>
+            <if test="bdTempMaterial.inStatus != null and bdTempMaterial.inStatus.size > 0">
+                and bm.status in
+                <foreach collection="bdTempMaterial.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+            <if test="bdTempMaterial.creatorId != null and bdTempMaterial.creatorId != ''">
+                and bm.creator_id = #{ bdTempMaterial.creatorId }
+            </if>
+        </where>
+        ORDER BY bm.create_time DESC
+    </select>
+
+    <select id="infoById" resultMap="materialMap">
+        SELECT bm.*, bu.name as unit_name
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+             , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+        FROM bd_temp_material bm
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN sys_user ctr ON bm.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bm.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bm.auditor_id = atr.id
+            LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+        <where>
+            bm.id = #{ id }
+        </where>
+    </select>
+</mapper>

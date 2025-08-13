@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.pur.PurPurchaseOrderMapper">
+
+    <select id="getPage" resultType="com.fenglei.model.pur.entity.PurPurchaseOrder">
+        SELECT ppo.*
+             , pcr.username as purchaser, flr.username as follower
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+        FROM pur_purchase_order ppo
+            LEFT JOIN sys_user pcr ON ppo.purchaser_id = pcr.id
+            LEFT JOIN sys_user flr ON ppo.follower_id = flr.id
+            LEFT JOIN sys_user ctr ON ppo.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON ppo.updater_id = utr.id
+            LEFT JOIN sys_user atr ON ppo.auditor_id = atr.id
+        <where>
+            1 = 1
+            <if test="purPurchaseOrder.ids != null and purPurchaseOrder.ids.size > 0">
+                and ppo.id in
+                <foreach collection="purPurchaseOrder.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="purPurchaseOrder.no != null and purPurchaseOrder.no != ''">
+                and ppo.no like concat('%', #{ purPurchaseOrder.no }, '%')
+            </if>
+            <if test="purPurchaseOrder.purchaserId != null and purPurchaseOrder.purchaserId != ''">
+                and ppo.purchaser_id = #{ purPurchaseOrder.purchaserId }
+            </if>
+            <if test="purPurchaseOrder.purchaserIds != null and purPurchaseOrder.purchaserIds.size > 0">
+                and ppo.purchaser_id in
+                <foreach collection="purPurchaseOrder.purchaserIds" item="purchaserId" index="index"
+                         open="(" separator="," close=")">
+                    #{ purchaserId }
+                </foreach>
+            </if>
+            <if test="purPurchaseOrder.followerId != null and purPurchaseOrder.followerId != ''">
+                and ppo.follower_id = #{ purPurchaseOrder.followerId }
+            </if>
+            <if test="purPurchaseOrder.followerIds != null and purPurchaseOrder.followerIds.size > 0">
+                and ppo.follower_id in
+                <foreach collection="purPurchaseOrder.followerIds" item="followerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ followerId }
+                </foreach>
+            </if>
+            <if test="purPurchaseOrder.billType != null and purPurchaseOrder.billType != ''">
+                and ppo.bill_type = #{ purPurchaseOrder.billType }
+            </if>
+            <if test="purPurchaseOrder.billTypes != null and purPurchaseOrder.billTypes.size > 0">
+                and ppo.bill_type in
+                <foreach collection="purPurchaseOrder.billTypes" item="billType" index="index"
+                         open="(" separator="," close=")">
+                    #{ billType }
+                </foreach>
+            </if>
+            <if test="purPurchaseOrder.bizDateBegin != null and purPurchaseOrder.bizDateBegin != ''">
+                and date_format(ppo.biz_date, '%Y-%m-%d') &gt;= #{ purPurchaseOrder.bizDateBegin }
+            </if>
+            <if test="purPurchaseOrder.bizDateEnd != null and purPurchaseOrder.bizDateEnd != ''">
+                and date_format(ppo.biz_date, '%Y-%m-%d') &lt;= #{ purPurchaseOrder.bizDateEnd }
+            </if>
+            <if test="purPurchaseOrder.auditTimeBegin != null and purPurchaseOrder.auditTimeBegin != ''">
+                and date_format(ppo.audit_time, '%Y-%m-%d') &gt;= #{ purPurchaseOrder.auditTimeBegin }
+            </if>
+            <if test="purPurchaseOrder.auditTimeEnd != null and purPurchaseOrder.auditTimeEnd != ''">
+                and date_format(ppo.audit_time, '%Y-%m-%d') &lt;= #{ purPurchaseOrder.auditTimeEnd }
+            </if>
+        </where>
+        ORDER BY ppo.create_time DESC
+    </select>
+
+    <select id="getList" resultType="com.fenglei.model.pur.entity.PurPurchaseOrder">
+        SELECT ppo.*
+             , pcr.username as purchaser, flr.username as follower
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+        FROM pur_purchase_order ppo
+            LEFT JOIN sys_user pcr ON ppo.purchaser_id = pcr.id
+            LEFT JOIN sys_user flr ON ppo.follower_id = flr.id
+            LEFT JOIN sys_user ctr ON ppo.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON ppo.updater_id = utr.id
+            LEFT JOIN sys_user atr ON ppo.auditor_id = atr.id
+        <where>
+            1 = 1
+            <if test="purPurchaseOrder.no != null and purPurchaseOrder.no != ''">
+                and ppo.no like concat('%', #{ purPurchaseOrder.no }, '%')
+            </if>
+            <if test="purPurchaseOrder.purchaserId != null and purPurchaseOrder.purchaserId != ''">
+                and ppo.purchaser_id = #{ purPurchaseOrder.purchaserId }
+            </if>
+            <if test="purPurchaseOrder.purchaserIds != null and purPurchaseOrder.purchaserIds.size > 0">
+                and ppo.purchaser_id in
+                <foreach collection="purPurchaseOrder.purchaserIds" item="purchaserId" index="index"
+                         open="(" separator="," close=")">
+                    #{ purchaserId }
+                </foreach>
+            </if>
+            <if test="purPurchaseOrder.followerId != null and purPurchaseOrder.followerId != ''">
+                and ppo.follower_id = #{ purPurchaseOrder.followerId }
+            </if>
+            <if test="purPurchaseOrder.followerIds != null and purPurchaseOrder.followerIds.size > 0">
+                and ppo.follower_id in
+                <foreach collection="purPurchaseOrder.followerIds" item="followerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ followerId }
+                </foreach>
+            </if>
+            <if test="purPurchaseOrder.billType != null and purPurchaseOrder.billType != ''">
+                and ppo.bill_type = #{ purPurchaseOrder.billType }
+            </if>
+            <if test="purPurchaseOrder.billTypes != null and purPurchaseOrder.billTypes.size > 0">
+                and ppo.bill_type in
+                <foreach collection="purPurchaseOrder.billTypes" item="billType" index="index"
+                         open="(" separator="," close=")">
+                    #{ billType }
+                </foreach>
+            </if>
+            <if test="purPurchaseOrder.bizDateBegin != null and purPurchaseOrder.bizDateBegin != ''">
+                and date_format(ppo.biz_date, '%Y-%m-%d') &gt;= #{ purPurchaseOrder.bizDateBegin }
+            </if>
+            <if test="purPurchaseOrder.bizDateEnd != null and purPurchaseOrder.bizDateEnd != ''">
+                and date_format(ppo.biz_date, '%Y-%m-%d') &lt;= #{ purPurchaseOrder.bizDateEnd }
+            </if>
+            <if test="purPurchaseOrder.auditTimeBegin != null and purPurchaseOrder.auditTimeBegin != ''">
+                and date_format(ppo.audit_time, '%Y-%m-%d') &gt;= #{ purPurchaseOrder.auditTimeBegin }
+            </if>
+            <if test="purPurchaseOrder.auditTimeEnd != null and purPurchaseOrder.auditTimeEnd != ''">
+                and date_format(ppo.audit_time, '%Y-%m-%d') &lt;= #{ purPurchaseOrder.auditTimeEnd }
+            </if>
+        </where>
+        ORDER BY ppo.create_time DESC
+    </select>
+
+    <select id="infoById" resultType="com.fenglei.model.pur.entity.PurPurchaseOrder">
+        SELECT ppo.*
+             , pcr.username as purchaser, flr.username as follower
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+        FROM pur_purchase_order ppo
+            LEFT JOIN sys_user pcr ON ppo.purchaser_id = pcr.id
+            LEFT JOIN sys_user flr ON ppo.follower_id = flr.id
+            LEFT JOIN sys_user ctr ON ppo.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON ppo.updater_id = utr.id
+            LEFT JOIN sys_user atr ON ppo.auditor_id = atr.id
+        <where>
+            ppo.id = #{ id }
+        </where>
+    </select>
+
+</mapper>

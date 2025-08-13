@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.system.SysDeptMapper">
+    <select id="getdeptTreeByStaffId" resultType="java.lang.String">
+        SELECT a.dept_id FROM sys_staff_dept a left join sys_dept b on a.dept_id = b.id WHERE a.staff_id = #{staffId}
+    </select>
+
+    <select id="getChildrenDept" resultType="com.fenglei.model.system.entity.SysDept">
+        SELECT
+        *
+        FROM
+        sys_dept
+        <where>
+            <if test="treePaths != null and treePaths.size() > 0">
+                <foreach collection='treePaths' item='items' open='(' separator='or' close=')'>
+                    tree_path LIKE concat( '%',("${items}") , '%' )
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getByDeptName" resultType="com.fenglei.model.system.entity.SysDept">
+        select id,name from sys_dept where name like concat( '%',#{deptName} , '%' )
+    </select>
+
+    <select id="getDeptDTOById" resultType="com.fenglei.model.system.dto.DeptDTO">
+        SELECT id,name FROM sys_dept
+        WHERE id=#{id}
+    </select>
+
+    <select id="filterDept" resultType="com.fenglei.model.system.entity.SysDept">
+        SELECT
+            *
+        FROM
+            sys_dept
+        WHERE
+                tree_path LIKE concat( '%', ( SELECT dept_id FROM sys_staff_dept WHERE staff_id = #{staffId} ), '%' )
+        --         ORDER BY
+--             gmt_create DESC
+--             LIMIT 1
+    </select>
+    <select id="getDeptByTree" resultType="com.fenglei.model.system.entity.SysDept">
+
+    </select>
+
+</mapper>
+

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.security.mapper.UserMapper">
+    <select id="loadCustomerContactByOpenId" resultType="com.fenglei.security.pojo.CustomerContactUserDetail">
+        select *
+        from crm_cu_customer_contact
+        where mp_openid = #{openId}
+    </select>
+
+    <select id="loadCustomerContactByPhone" resultType="com.fenglei.security.pojo.CustomerContactUserDetail">
+        select *
+        from crm_cu_customer_contact
+        where phone_number = #{phone}
+    </select>
+
+    <select id="getWechatInfoByOpenId" resultType="com.fenglei.security.pojo.WechatAuthDTO">
+        select *
+        from sys_wechat_auth
+        where openid = #{openId}
+    </select>
+
+    <insert id="insertInterceptorLog">
+        insert interceptor_logs (method, request_url, query_string, creator_id, create_time) VALUES (#{ method }, #{ requestUrl }, #{ queryString }, #{ creatorId }, NOW())
+    </insert>
+
+    <select id="selectInterceptorLogs" resultType="com.fenglei.security.pojo.InterceptorLogs">
+        select a.*, date_format(a.create_time,'%Y-%m-%d %H:%i:%S') as create_time_str
+             , b.dept_id, c.name as dept
+             , b.customer_id, d.name as customer
+             , d.customer_cate_id, e.name as customer_cate
+        from interceptor_logs a
+            left join sys_user b on a.creator_id = b.id
+            left join sys_dept c on b.dept_id = c.id
+            left join bd_customer d on b.customer_id = d.id
+            left join bd_customer_cate e on d.customer_cate_id = e.id
+            left join interceptor_logs f on a.id = f.id
+    </select>
+</mapper>

@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.fin.FinStaffSalaryMapper">
+    <select id="searchPieceRates" resultType="com.fenglei.model.fin.vo.PieceRateVo">
+        SELECT
+        su.id AS staffNum,
+        su.nickname AS staffName,
+        sd.NAME AS deptName,
+        pctir.procedure_no,
+        pctir.procedure_id,
+        bp.NAME AS procedureName,
+        bp.number AS procedureNum,
+        pctir.price,
+        pctir.real_reported_qty AS realReportedQty,
+        pctir.reported_qty AS qty,
+        pctir.is_in_stock,
+--        pctir.price * pctir.real_reported_qty  AS predictAmount,
+--       if(pctir.is_in_stock = 1,pctir.price * pctir.reported_qty,0)  AS amount,
+        pctir.price * pctir.reported_qty AS amount,
+        pctir.reporter_id AS staffId,
+        pctir.report_time,
+        pctir.remark,
+        pct.color,
+        pct.specification,
+        bm.`name` productName,
+        bmd.number,
+        pcti.ticket_no
+        FROM
+        prd_cutting_ticket_item_report AS pctir
+        INNER JOIN sys_user AS su ON pctir.reporter_id = su.id
+        LEFT JOIN sys_dept AS sd ON su.dept_id = sd.id
+        LEFT JOIN bd_procedure AS bp ON pctir.procedure_id = bp.id
+        LEFT JOIN prd_cutting_ticket_item pcti ON pcti.id = pctir.pid
+        LEFT JOIN prd_cutting_ticket pct ON pct.id = pcti.pid
+        LEFT JOIN prd_cutting pc ON pc.id = pct.pid
+        LEFT JOIN bd_material bm ON bm.id = pc.product_id
+        LEFT JOIN bd_material_detail bmd ON bmd.id = pct.sku_id
+        <where>
+            <if test="pieceRateFilter.beginDate != null and pieceRateFilter.beginDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &gt;= date_format(#{pieceRateFilter.beginDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.endDate != null and pieceRateFilter.endDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &lt;= date_format(#{pieceRateFilter.endDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.deptIds != null and pieceRateFilter.deptIds.size() > 0">
+                and sd.id in
+                <foreach collection="pieceRateFilter.deptIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="pieceRateFilter.staffIds != null and pieceRateFilter.staffIds.size() > 0">
+                and su.id in
+                <foreach collection="pieceRateFilter.staffIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="pieceRateFilter.productName != null and pieceRateFilter.productName.trim() != ''">
+                and bm.name like concat('%', #{pieceRateFilter.productName}, '%')
+            </if>
+            <if test="pieceRateFilter.color != null and pieceRateFilter.color.trim() != ''">
+                and pct.color like concat('%', #{pieceRateFilter.color}, '%')
+            </if>
+            <if test="pieceRateFilter.specification != null and pieceRateFilter.specification.trim() != ''">
+                and pct.specification like concat('%', #{pieceRateFilter.specification}, '%')
+            </if>
+            <if test="pieceRateFilter.number != null and pieceRateFilter.number.trim() != ''">
+                and bmd.number like concat('%', #{pieceRateFilter.number}, '%')
+            </if>
+            <if test="pieceRateFilter.procedureName != null and pieceRateFilter.procedureName.trim() != ''">
+                and bp.name like concat('%', #{pieceRateFilter.procedureName}, '%')
+            </if>
+            <if test="pieceRateFilter.staffName != null and pieceRateFilter.staffName.trim() != ''">
+                and su.nickname like concat('%', #{pieceRateFilter.staffName}, '%')
+            </if>
+            <if test="pieceRateFilter.staffId != null and pieceRateFilter.staffId.trim() != ''">
+                and su.id = #{pieceRateFilter.staffId}
+            </if>
+        </where>
+        order by pctir.report_time
+    </select>
+
+
+    <select id="pagePieceRatesSummary" resultType="com.fenglei.model.fin.vo.PieceRateVo">
+        SELECT
+        su.id AS staffNum,
+        su.nickname AS staffName,
+        sd.NAME AS deptName,
+        pctir.procedure_no,
+        pctir.procedure_id,
+        bp.NAME AS procedureName,
+        bp.number AS procedureNum,
+        pctir.price,
+        pctir.reported_qty AS qty,
+        pctir.real_reported_qty AS realReportedQty,
+        pctir.is_in_stock,
+    --  IFNULL(sum(pctir.price * pctir.real_reported_qty),0)  AS predictAmount,
+    --  IFNULL(sum(if(pctir.is_in_stock = 1,pctir.price * pctir.reported_qty,0)),0) AS amount,
+        IFNULL(sum(pctir.price * pctir.reported_qty),0) AS amount,
+        pctir.reporter_id AS staffId,
+        pctir.report_time,
+        pctir.remark,
+        pct.color,
+        pct.specification,
+        bm.`name` productName,
+        bmd.number
+        FROM
+        prd_cutting_ticket_item_report AS pctir
+        INNER JOIN sys_user AS su ON pctir.reporter_id = su.id
+        LEFT JOIN sys_dept AS sd ON su.dept_id = sd.id
+        LEFT JOIN bd_procedure AS bp ON pctir.procedure_id = bp.id
+        LEFT JOIN prd_cutting_ticket_item pcti ON pcti.id = pctir.pid
+        LEFT JOIN prd_cutting_ticket pct ON pct.id = pcti.pid
+        LEFT JOIN prd_cutting pc ON pc.id = pct.pid
+        LEFT JOIN bd_material bm ON bm.id = pc.product_id
+        LEFT JOIN bd_material_detail bmd ON bmd.id = pct.sku_id
+        <where>
+            <if test="pieceRateFilter.beginDate != null and pieceRateFilter.beginDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &gt;= date_format(#{pieceRateFilter.beginDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.endDate != null and pieceRateFilter.endDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &lt;= date_format(#{pieceRateFilter.endDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.deptIds != null and pieceRateFilter.deptIds.size() > 0">
+                and sd.id in
+                <foreach collection="pieceRateFilter.deptIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="pieceRateFilter.staffIds != null and pieceRateFilter.staffIds.size() > 0">
+                and su.id in
+                <foreach collection="pieceRateFilter.staffIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="pieceRateFilter.productName != null and pieceRateFilter.productName.trim() != ''">
+                and bm.name like concat('%', #{pieceRateFilter.productName}, '%')
+            </if>
+            <if test="pieceRateFilter.color != null and pieceRateFilter.color.trim() != ''">
+                and pct.color like concat('%', #{pieceRateFilter.color}, '%')
+            </if>
+            <if test="pieceRateFilter.specification != null and pieceRateFilter.specification.trim() != ''">
+                and pct.specification like concat('%', #{pieceRateFilter.specification}, '%')
+            </if>
+            <if test="pieceRateFilter.number != null and pieceRateFilter.number.trim() != ''">
+                and bmd.number like concat('%', #{pieceRateFilter.number}, '%')
+            </if>
+            <if test="pieceRateFilter.procedureName != null and pieceRateFilter.procedureName.trim() != ''">
+                and bp.name like concat('%', #{pieceRateFilter.procedureName}, '%')
+            </if>
+            <if test="pieceRateFilter.staffName != null and pieceRateFilter.staffName.trim() != ''">
+                and su.nickname like concat('%', #{pieceRateFilter.staffName}, '%')
+            </if>
+            <if test="pieceRateFilter.staffId != null and pieceRateFilter.staffId.trim() != ''">
+                and su.id = #{pieceRateFilter.staffId}
+            </if>
+        </where>
+        group by su.id
+        order by pctir.report_time
+    </select>
+
+    <select id="getAllPieceRatesSummary" resultType="java.math.BigDecimal">
+        SELECT
+        IFNULL(sum(pctir.price * pctir.reported_qty),0) AS amount
+--        IFNULL(sum(if(pctir.is_in_stock = 1,pctir.price * pctir.reported_qty,0)),0) AS amount
+        FROM
+        prd_cutting_ticket_item_report AS pctir
+        INNER JOIN sys_user AS su ON pctir.reporter_id = su.id
+        LEFT JOIN sys_dept AS sd ON su.dept_id = sd.id
+        LEFT JOIN bd_procedure AS bp ON pctir.procedure_id = bp.id
+        LEFT JOIN prd_cutting_ticket_item pcti ON pcti.id = pctir.pid
+        LEFT JOIN prd_cutting_ticket pct ON pct.id = pcti.pid
+        LEFT JOIN prd_cutting pc ON pc.id = pct.pid
+        LEFT JOIN bd_material bm ON bm.id = pc.product_id
+        LEFT JOIN bd_material_detail bmd ON bmd.id = pct.sku_id
+        <where>
+            <if test="pieceRateFilter.beginDate != null and pieceRateFilter.beginDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &gt;= date_format(#{pieceRateFilter.beginDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.endDate != null and pieceRateFilter.endDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &lt;= date_format(#{pieceRateFilter.endDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.deptIds != null and pieceRateFilter.deptIds.size() > 0">
+                and sd.id in
+                <foreach collection="pieceRateFilter.deptIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="pieceRateFilter.staffIds != null and pieceRateFilter.staffIds.size() > 0">
+                and su.id in
+                <foreach collection="pieceRateFilter.staffIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="pieceRateFilter.productName != null and pieceRateFilter.productName.trim() != ''">
+                and bm.name like concat('%', #{pieceRateFilter.productName}, '%')
+            </if>
+            <if test="pieceRateFilter.color != null and pieceRateFilter.color.trim() != ''">
+                and pct.color like concat('%', #{pieceRateFilter.color}, '%')
+            </if>
+            <if test="pieceRateFilter.specification != null and pieceRateFilter.specification.trim() != ''">
+                and pct.specification like concat('%', #{pieceRateFilter.specification}, '%')
+            </if>
+            <if test="pieceRateFilter.number != null and pieceRateFilter.number.trim() != ''">
+                and bmd.number like concat('%', #{pieceRateFilter.number}, '%')
+            </if>
+            <if test="pieceRateFilter.procedureName != null and pieceRateFilter.procedureName.trim() != ''">
+                and bp.name like concat('%', #{pieceRateFilter.procedureName}, '%')
+            </if>
+            <if test="pieceRateFilter.staffName != null and pieceRateFilter.staffName.trim() != ''">
+                and su.nickname like concat('%', #{pieceRateFilter.staffName}, '%')
+            </if>
+            <if test="pieceRateFilter.staffId != null and pieceRateFilter.staffId.trim() != ''">
+                and su.id = #{pieceRateFilter.staffId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getPieceRatesSummary" resultType="com.fenglei.model.fin.vo.PieceRateVo">
+        SELECT
+        su.id AS staffNum,
+        su.nickname AS staffName,
+        sd.NAME AS deptName,
+        sum(pctir.reported_qty) AS qty,
+--         sum(pctir.price * pctir.real_reported_qty)  AS predictAmount,
+--         IFNULL(sum(if(pctir.is_in_stock = 1,pctir.price * pctir.reported_qty,0)),0) AS amount,
+        IFNULL(sum(pctir.price * pctir.reported_qty),0) AS amount,
+        pctir.reporter_id AS staffId,
+        pctir.report_time,
+        pctir.remark
+        FROM
+        prd_cutting_ticket_item_report AS pctir
+        INNER JOIN sys_user AS su ON pctir.reporter_id = su.id
+        LEFT JOIN sys_dept AS sd ON su.dept_id = sd.id
+        <where>
+            su.id = #{pieceRateFilter.staffId}
+            <if test="pieceRateFilter.beginDate != null and pieceRateFilter.beginDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &gt;= date_format(#{pieceRateFilter.beginDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.endDate != null and pieceRateFilter.endDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &lt;= date_format(#{pieceRateFilter.endDate}, '%Y-%m-%d')
+            </if>
+        </where>
+    </select>
+    <select id="getTodayPieceRatesSummary" resultType="java.math.BigDecimal">
+        SELECT
+--        IFNULL(sum(if(pctir.is_in_stock = 1,pctir.price * pctir.reported_qty,0)),0) AS todayAmount
+        IFNULL(sum(pctir.price * pctir.reported_qty),0) AS todayAmount
+        FROM
+        prd_cutting_ticket_item_report AS pctir
+        INNER JOIN sys_user AS su ON pctir.reporter_id = su.id
+        LEFT JOIN sys_dept AS sd ON su.dept_id = sd.id
+        <where>
+            su.id = #{pieceRateFilter.staffId} and date_format(pctir.report_time, '%Y-%m-%d') = date_format(now(),'%Y-%m-%d')
+        </where>
+    </select>
+
+
+    <select id="getLastMonthPieceRatesSummary" resultType="java.math.BigDecimal">
+        SELECT
+--         IFNULL(sum(if(pctir.is_in_stock = 1,pctir.price * pctir.reported_qty,0)),0) AS lastMonthAmount
+        IFNULL(sum(pctir.price * pctir.reported_qty),0) AS lastMonthAmount
+        FROM
+        prd_cutting_ticket_item_report AS pctir
+        INNER JOIN sys_user AS su ON pctir.reporter_id = su.id
+        LEFT JOIN sys_dept AS sd ON su.dept_id = sd.id
+        <where>
+            su.id = #{pieceRateFilter.staffId}
+            <if test="pieceRateFilter.lastMonthBeginDate != null and pieceRateFilter.lastMonthBeginDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &gt;= date_format(#{pieceRateFilter.lastMonthBeginDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.lastMonthEndDate != null and pieceRateFilter.lastMonthEndDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &lt;= date_format(#{pieceRateFilter.lastMonthEndDate}, '%Y-%m-%d')
+            </if>
+        </where>
+    </select>
+
+    <select id="getCurrentMonthPieceRatesSummary" resultType="java.math.BigDecimal">
+        SELECT
+--        IFNULL(sum(if(pctir.is_in_stock = 1,pctir.price * pctir.reported_qty,0)),0) AS currentMonthAmount
+        IFNULL(sum(pctir.price * pctir.reported_qty),0) AS currentMonthAmount
+        FROM
+        prd_cutting_ticket_item_report AS pctir
+        INNER JOIN sys_user AS su ON pctir.reporter_id = su.id
+        LEFT JOIN sys_dept AS sd ON su.dept_id = sd.id
+        <where>
+            su.id = #{pieceRateFilter.staffId}
+            <if test="pieceRateFilter.currentMonthBeginDate != null and pieceRateFilter.currentMonthBeginDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &gt;= date_format(#{pieceRateFilter.currentMonthBeginDate}, '%Y-%m-%d')
+            </if>
+            <if test="pieceRateFilter.currentMonthEndDate != null and pieceRateFilter.currentMonthEndDate.trim() != ''">
+                and date_format(pctir.report_time, '%Y-%m-%d') &lt;= date_format(#{pieceRateFilter.currentMonthEndDate}, '%Y-%m-%d')
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

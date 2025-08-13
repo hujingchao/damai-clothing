@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdManualLedgerMapper">
+
+    <resultMap id="manualLedgerMap" type="com.fenglei.model.basedata.BdManualLedger">
+        <result property="id" column="id"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+        <result property="creatorId" column="creator_id"></result>
+        <result property="updaterId" column="updater_id"></result>
+        <result property="creator" column="creator"></result>
+        <result property="updater" column="updater"></result>
+
+        <result property="number" column="number"></result>
+        <result property="name" column="name"></result>
+        <result property="remark" column="remark"></result>
+        <result property="leaderId" column="leader_id"></result>
+
+        <association property="leader" javaType="com.fenglei.model.system.entity.SysUser">
+            <result property="username" column="username"></result>
+            <result property="nickname" column="nickname"></result>
+            <result property="mobile" column="mobile"></result>
+            <result property="avatar" column="avatar"></result>
+            <result property="gender" column="gender"></result>
+            <result property="email" column="email"></result>
+        </association>
+    </resultMap>
+
+    <select id="getPage" resultMap="manualLedgerMap">
+        SELECT bml.*, ctr.username as creator, utr.username as updater
+             , ltr.username, ltr.nickname, ltr.mobile, ltr.avatar, ltr.gender, ltr.email
+        FROM bd_manual_ledger bml
+            LEFT JOIN sys_user ctr ON bml.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bml.updater_id = utr.id
+            LEFT JOIN sys_user ltr ON bml.leader_id = ltr.id
+        <where>
+            bml.deleted = 0
+            <if test="bdManualLedger.number != null and bdManualLedger.number != ''">
+                and bml.number like concat('%', #{ bdManualLedger.number }, '%')
+            </if>
+            <if test="bdManualLedger.name != null and bdManualLedger.name != ''">
+                and bml.name like concat('%', #{ bdManualLedger.name }, '%')
+            </if>
+            <if test="bdManualLedger.ids != null and bdManualLedger.ids.size > 0">
+                and bml.id in
+                <foreach collection="bdManualLedger.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+        </where>
+        ORDER BY bml.create_time DESC
+    </select>
+
+    <select id="infoById" resultMap="manualLedgerMap">
+        SELECT bml.*, ctr.username as creator, utr.username as updater
+             , ltr.username, ltr.nickname, ltr.mobile, ltr.avatar, ltr.gender, ltr.email
+        FROM bd_manual_ledger bml
+            LEFT JOIN sys_user ctr ON bml.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bml.updater_id = utr.id
+            LEFT JOIN sys_user ltr ON bml.leader_id = ltr.id
+        <where>
+            bml.id = #{ id }
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.prd.PrdMoColorSpecDataMapper">
+
+    <select id="getList" resultType="com.fenglei.model.prd.entity.PrdMoColorSpecData">
+        select pmp.*
+             , bmd.id as product_id, bmd.number as product_num, bmd.name as product_name
+             , bm.unit_id, bu.name as unit_name, sf.url as main_pic_url
+        from prd_mo_color_spec_data pmp
+            LEFT JOIN bd_material_detail bmd ON pmp.product_id = bmd.id
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+            LEFT JOIN bd_material bm ON bmd.pid = bm.id
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN sys_files sf ON bmd.main_pic_id = sf.id
+        <where>
+            <if test="moColorSpecData.pid != null and moColorSpecData.pid != ''">
+                and pmp.pid = #{ moColorSpecData.pid }
+            </if>
+            <if test="moColorSpecData.pids != null and moColorSpecData.pids.size > 0">
+                and pmp.pid in
+                <foreach collection="moColorSpecData.pids" item="pid" index="index"
+                         open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getAllQty" resultType="java.math.BigDecimal">
+        select ifnull(sum(ifnull(pmcsd.qty, 0)), 0) as all_qty
+        from prd_mo_color_spec_data pmcsd
+            left join prd_mo pm on pmcsd.pid = pm.id
+        <where>
+            1 = 1
+            <if test="prdMo.no != null and prdMo.no != ''">
+                and pm.no like concat('%', #{ prdMo.no }, '%')
+            </if>
+            <if test="prdMo.productId != null and prdMo.productId != ''">
+                and pm.product_id = #{ prdMo.productId }
+            </if>
+            <if test="prdMo.productIds != null and prdMo.productIds.size > 0">
+                and pm.product_id in
+                <foreach collection="prdMo.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="prdMo.followerId != null and prdMo.followerId != ''">
+                and pm.follower_id = #{ prdMo.followerId }
+            </if>
+            <if test="prdMo.followerIds != null and prdMo.followerIds.size > 0">
+                and pm.follower_id in
+                <foreach collection="prdMo.followerIds" item="followerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ followerId }
+                </foreach>
+            </if>
+            <if test="prdMo.productionStatus != null">
+                and pm.production_status = #{ prdMo.productionStatus }
+            </if>
+            <if test="prdMo.inProductionStatus != null and prdMo.inProductionStatus.size > 0">
+                and pm.production_status in
+                <foreach collection="prdMo.inProductionStatus" item="productionStatus" index="index"
+                         open="(" separator="," close=")">
+                    #{ productionStatus }
+                </foreach>
+            </if>
+            <if test="prdMo.billType != null and prdMo.billType != ''">
+                and pm.bill_type = #{ prdMo.billType }
+            </if>
+            <if test="prdMo.billTypes != null and prdMo.billTypes.size > 0">
+                and pm.bill_type in
+                <foreach collection="prdMo.billTypes" item="billType" index="index"
+                         open="(" separator="," close=")">
+                    #{ billType }
+                </foreach>
+            </if>
+            <if test="prdMo.deliveryDateBegin != null and prdMo.deliveryDateBegin != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &gt;= #{ prdMo.deliveryDateBegin }
+            </if>
+            <if test="prdMo.deliveryDateEnd != null and prdMo.deliveryDateEnd != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &lt;= #{ prdMo.deliveryDateEnd }
+            </if>
+            <if test="prdMo.preBeginDateBegin != null and prdMo.preBeginDateBegin != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &gt;= #{ prdMo.preBeginDateBegin }
+            </if>
+            <if test="prdMo.preBeginDateEnd != null and prdMo.preBeginDateEnd != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &lt;= #{ prdMo.preBeginDateEnd }
+            </if>
+            <if test="prdMo.preEndDateBegin != null and prdMo.preEndDateBegin != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &gt;= #{ prdMo.preEndDateBegin }
+            </if>
+            <if test="prdMo.preEndDateEnd != null and prdMo.preEndDateEnd != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &lt;= #{ prdMo.preEndDateEnd }
+            </if>
+            <if test="prdMo.auditTimeBegin != null and prdMo.auditTimeBegin != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &gt;= #{ prdMo.auditTimeBegin }
+            </if>
+            <if test="prdMo.auditTimeEnd != null and prdMo.auditTimeEnd != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &lt;= #{ prdMo.auditTimeEnd }
+            </if>
+        </where>
+    </select>
+
+    <select id="getCuttingQty" resultType="java.math.BigDecimal">
+        select ifnull(sum(ifnull(pmcsd.cutting_qty, 0)), 0) as all_cutting_qty
+        from prd_mo_color_spec_data pmcsd
+        left join prd_mo pm on pmcsd.pid = pm.id
+        <where>
+            1 = 1
+            <if test="prdMo.no != null and prdMo.no != ''">
+                and pm.no like concat('%', #{ prdMo.no }, '%')
+            </if>
+            <if test="prdMo.productId != null and prdMo.productId != ''">
+                and pm.product_id = #{ prdMo.productId }
+            </if>
+            <if test="prdMo.productIds != null and prdMo.productIds.size > 0">
+                and pm.product_id in
+                <foreach collection="prdMo.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="prdMo.followerId != null and prdMo.followerId != ''">
+                and pm.follower_id = #{ prdMo.followerId }
+            </if>
+            <if test="prdMo.followerIds != null and prdMo.followerIds.size > 0">
+                and pm.follower_id in
+                <foreach collection="prdMo.followerIds" item="followerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ followerId }
+                </foreach>
+            </if>
+            <if test="prdMo.productionStatus != null">
+                and pm.production_status = #{ prdMo.productionStatus }
+            </if>
+            <if test="prdMo.inProductionStatus != null and prdMo.inProductionStatus.size > 0">
+                and pm.production_status in
+                <foreach collection="prdMo.inProductionStatus" item="productionStatus" index="index"
+                         open="(" separator="," close=")">
+                    #{ productionStatus }
+                </foreach>
+            </if>
+            <if test="prdMo.billType != null and prdMo.billType != ''">
+                and pm.bill_type = #{ prdMo.billType }
+            </if>
+            <if test="prdMo.billTypes != null and prdMo.billTypes.size > 0">
+                and pm.bill_type in
+                <foreach collection="prdMo.billTypes" item="billType" index="index"
+                         open="(" separator="," close=")">
+                    #{ billType }
+                </foreach>
+            </if>
+            <if test="prdMo.deliveryDateBegin != null and prdMo.deliveryDateBegin != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &gt;= #{ prdMo.deliveryDateBegin }
+            </if>
+            <if test="prdMo.deliveryDateEnd != null and prdMo.deliveryDateEnd != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &lt;= #{ prdMo.deliveryDateEnd }
+            </if>
+            <if test="prdMo.preBeginDateBegin != null and prdMo.preBeginDateBegin != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &gt;= #{ prdMo.preBeginDateBegin }
+            </if>
+            <if test="prdMo.preBeginDateEnd != null and prdMo.preBeginDateEnd != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &lt;= #{ prdMo.preBeginDateEnd }
+            </if>
+            <if test="prdMo.preEndDateBegin != null and prdMo.preEndDateBegin != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &gt;= #{ prdMo.preEndDateBegin }
+            </if>
+            <if test="prdMo.preEndDateEnd != null and prdMo.preEndDateEnd != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &lt;= #{ prdMo.preEndDateEnd }
+            </if>
+            <if test="prdMo.auditTimeBegin != null and prdMo.auditTimeBegin != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &gt;= #{ prdMo.auditTimeBegin }
+            </if>
+            <if test="prdMo.auditTimeEnd != null and prdMo.auditTimeEnd != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &lt;= #{ prdMo.auditTimeEnd }
+            </if>
+        </where>
+    </select>
+
+    <select id="getInstockQty" resultType="java.math.BigDecimal">
+        select ifnull(sum(ifnull(pmcsd.instock_qty, 0)), 0) as all_instock_qty
+        from prd_mo_color_spec_data pmcsd
+            left join prd_mo pm on pmcsd.pid = pm.id
+        <where>
+            1 = 1
+            <if test="prdMo.no != null and prdMo.no != ''">
+                and pm.no like concat('%', #{ prdMo.no }, '%')
+            </if>
+            <if test="prdMo.productId != null and prdMo.productId != ''">
+                and pm.product_id = #{ prdMo.productId }
+            </if>
+            <if test="prdMo.productIds != null and prdMo.productIds.size > 0">
+                and pm.product_id in
+                <foreach collection="prdMo.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="prdMo.followerId != null and prdMo.followerId != ''">
+                and pm.follower_id = #{ prdMo.followerId }
+            </if>
+            <if test="prdMo.followerIds != null and prdMo.followerIds.size > 0">
+                and pm.follower_id in
+                <foreach collection="prdMo.followerIds" item="followerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ followerId }
+                </foreach>
+            </if>
+            <if test="prdMo.productionStatus != null">
+                and pm.production_status = #{ prdMo.productionStatus }
+            </if>
+            <if test="prdMo.inProductionStatus != null and prdMo.inProductionStatus.size > 0">
+                and pm.production_status in
+                <foreach collection="prdMo.inProductionStatus" item="productionStatus" index="index"
+                         open="(" separator="," close=")">
+                    #{ productionStatus }
+                </foreach>
+            </if>
+            <if test="prdMo.billType != null and prdMo.billType != ''">
+                and pm.bill_type = #{ prdMo.billType }
+            </if>
+            <if test="prdMo.billTypes != null and prdMo.billTypes.size > 0">
+                and pm.bill_type in
+                <foreach collection="prdMo.billTypes" item="billType" index="index"
+                         open="(" separator="," close=")">
+                    #{ billType }
+                </foreach>
+            </if>
+            <if test="prdMo.deliveryDateBegin != null and prdMo.deliveryDateBegin != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &gt;= #{ prdMo.deliveryDateBegin }
+            </if>
+            <if test="prdMo.deliveryDateEnd != null and prdMo.deliveryDateEnd != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &lt;= #{ prdMo.deliveryDateEnd }
+            </if>
+            <if test="prdMo.preBeginDateBegin != null and prdMo.preBeginDateBegin != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &gt;= #{ prdMo.preBeginDateBegin }
+            </if>
+            <if test="prdMo.preBeginDateEnd != null and prdMo.preBeginDateEnd != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &lt;= #{ prdMo.preBeginDateEnd }
+            </if>
+            <if test="prdMo.preEndDateBegin != null and prdMo.preEndDateBegin != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &gt;= #{ prdMo.preEndDateBegin }
+            </if>
+            <if test="prdMo.preEndDateEnd != null and prdMo.preEndDateEnd != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &lt;= #{ prdMo.preEndDateEnd }
+            </if>
+            <if test="prdMo.auditTimeBegin != null and prdMo.auditTimeBegin != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &gt;= #{ prdMo.auditTimeBegin }
+            </if>
+            <if test="prdMo.auditTimeEnd != null and prdMo.auditTimeEnd != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &lt;= #{ prdMo.auditTimeEnd }
+            </if>
+        </where>
+    </select>
+
+    <select id="getAllInstockProcessAmt" resultType="java.math.BigDecimal">
+        select ifnull(sum(ifnull(pmcsd.instock_qty, 0) * ifnull(pmp.price, 0)), 0) as all_instock_process_amt
+        from prd_mo_color_spec_data pmcsd
+            left join prd_mo pm on pmcsd.pid = pm.id
+            left join prd_mo_process pmp on pmp.pid = pm.id
+        <where>
+            <if test="prdMo.no != null and prdMo.no != ''">
+                and pm.no like concat('%', #{ prdMo.no }, '%')
+            </if>
+            <if test="prdMo.productId != null and prdMo.productId != ''">
+                and pm.product_id = #{ prdMo.productId }
+            </if>
+            <if test="prdMo.productIds != null and prdMo.productIds.size > 0">
+                and pm.product_id in
+                <foreach collection="prdMo.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="prdMo.followerId != null and prdMo.followerId != ''">
+                and pm.follower_id = #{ prdMo.followerId }
+            </if>
+            <if test="prdMo.followerIds != null and prdMo.followerIds.size > 0">
+                and pm.follower_id in
+                <foreach collection="prdMo.followerIds" item="followerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ followerId }
+                </foreach>
+            </if>
+            <if test="prdMo.productionStatus != null">
+                and pm.production_status = #{ prdMo.productionStatus }
+            </if>
+            <if test="prdMo.inProductionStatus != null and prdMo.inProductionStatus.size > 0">
+                and pm.production_status in
+                <foreach collection="prdMo.inProductionStatus" item="productionStatus" index="index"
+                         open="(" separator="," close=")">
+                    #{ productionStatus }
+                </foreach>
+            </if>
+            <if test="prdMo.billType != null and prdMo.billType != ''">
+                and pm.bill_type = #{ prdMo.billType }
+            </if>
+            <if test="prdMo.billTypes != null and prdMo.billTypes.size > 0">
+                and pm.bill_type in
+                <foreach collection="prdMo.billTypes" item="billType" index="index"
+                         open="(" separator="," close=")">
+                    #{ billType }
+                </foreach>
+            </if>
+            <if test="prdMo.deliveryDateBegin != null and prdMo.deliveryDateBegin != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &gt;= #{ prdMo.deliveryDateBegin }
+            </if>
+            <if test="prdMo.deliveryDateEnd != null and prdMo.deliveryDateEnd != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &lt;= #{ prdMo.deliveryDateEnd }
+            </if>
+            <if test="prdMo.preBeginDateBegin != null and prdMo.preBeginDateBegin != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &gt;= #{ prdMo.preBeginDateBegin }
+            </if>
+            <if test="prdMo.preBeginDateEnd != null and prdMo.preBeginDateEnd != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &lt;= #{ prdMo.preBeginDateEnd }
+            </if>
+            <if test="prdMo.preEndDateBegin != null and prdMo.preEndDateBegin != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &gt;= #{ prdMo.preEndDateBegin }
+            </if>
+            <if test="prdMo.preEndDateEnd != null and prdMo.preEndDateEnd != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &lt;= #{ prdMo.preEndDateEnd }
+            </if>
+            <if test="prdMo.auditTimeBegin != null and prdMo.auditTimeBegin != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &gt;= #{ prdMo.auditTimeBegin }
+            </if>
+            <if test="prdMo.auditTimeEnd != null and prdMo.auditTimeEnd != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &lt;= #{ prdMo.auditTimeEnd }
+            </if>
+        </where>
+    </select>
+
+    <select id="getAllIngProcessAmt" resultType="java.math.BigDecimal">
+        select ifnull(sum((ifnull(pmcsd.cutting_qty, 0) - ifnull(pmcsd.instock_qty, 0)) * ifnull(pmp.price, 0)), 0) as all_ing_process_amt
+        from prd_mo_color_spec_data pmcsd
+            left join prd_mo pm on pmcsd.pid = pm.id
+            left join prd_mo_process pmp on pmp.pid = pm.id
+        <where>
+            1 = 1
+            <if test="prdMo.no != null and prdMo.no != ''">
+                and pm.no like concat('%', #{ prdMo.no }, '%')
+            </if>
+            <if test="prdMo.productId != null and prdMo.productId != ''">
+                and pm.product_id = #{ prdMo.productId }
+            </if>
+            <if test="prdMo.productIds != null and prdMo.productIds.size > 0">
+                and pm.product_id in
+                <foreach collection="prdMo.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="prdMo.followerId != null and prdMo.followerId != ''">
+                and pm.follower_id = #{ prdMo.followerId }
+            </if>
+            <if test="prdMo.followerIds != null and prdMo.followerIds.size > 0">
+                and pm.follower_id in
+                <foreach collection="prdMo.followerIds" item="followerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ followerId }
+                </foreach>
+            </if>
+            <if test="prdMo.productionStatus != null">
+                and pm.production_status = #{ prdMo.productionStatus }
+            </if>
+            <if test="prdMo.inProductionStatus != null and prdMo.inProductionStatus.size > 0">
+                and pm.production_status in
+                <foreach collection="prdMo.inProductionStatus" item="productionStatus" index="index"
+                         open="(" separator="," close=")">
+                    #{ productionStatus }
+                </foreach>
+            </if>
+            <if test="prdMo.billType != null and prdMo.billType != ''">
+                and pm.bill_type = #{ prdMo.billType }
+            </if>
+            <if test="prdMo.billTypes != null and prdMo.billTypes.size > 0">
+                and pm.bill_type in
+                <foreach collection="prdMo.billTypes" item="billType" index="index"
+                         open="(" separator="," close=")">
+                    #{ billType }
+                </foreach>
+            </if>
+            <if test="prdMo.deliveryDateBegin != null and prdMo.deliveryDateBegin != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &gt;= #{ prdMo.deliveryDateBegin }
+            </if>
+            <if test="prdMo.deliveryDateEnd != null and prdMo.deliveryDateEnd != ''">
+                and date_format(pm.delivery_date, '%Y-%m-%d') &lt;= #{ prdMo.deliveryDateEnd }
+            </if>
+            <if test="prdMo.preBeginDateBegin != null and prdMo.preBeginDateBegin != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &gt;= #{ prdMo.preBeginDateBegin }
+            </if>
+            <if test="prdMo.preBeginDateEnd != null and prdMo.preBeginDateEnd != ''">
+                and date_format(pm.pre_begin_date, '%Y-%m-%d') &lt;= #{ prdMo.preBeginDateEnd }
+            </if>
+            <if test="prdMo.preEndDateBegin != null and prdMo.preEndDateBegin != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &gt;= #{ prdMo.preEndDateBegin }
+            </if>
+            <if test="prdMo.preEndDateEnd != null and prdMo.preEndDateEnd != ''">
+                and date_format(pm.pre_end_date, '%Y-%m-%d') &lt;= #{ prdMo.preEndDateEnd }
+            </if>
+            <if test="prdMo.auditTimeBegin != null and prdMo.auditTimeBegin != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &gt;= #{ prdMo.auditTimeBegin }
+            </if>
+            <if test="prdMo.auditTimeEnd != null and prdMo.auditTimeEnd != ''">
+                and date_format(pm.audit_time, '%Y-%m-%d') &lt;= #{ prdMo.auditTimeEnd }
+            </if>
+        </where>
+    </select>
+</mapper>

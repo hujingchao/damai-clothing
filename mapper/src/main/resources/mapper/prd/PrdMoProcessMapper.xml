@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.prd.PrdMoProcessMapper">
+
+    <select id="listByPid" resultType="com.fenglei.model.prd.entity.PrdMoProcess">
+        SELECT pmp.*
+             , bpd.number as procedure_number, bpd.name as procedure_name, bpd.remark as procedure_remark
+             , dept.name as department_name
+        FROM prd_mo_process pmp
+            LEFT JOIN prd_mo pm ON pmp.pid = pm.id
+            LEFT JOIN bd_procedure bpd ON pmp.procedure_id = bpd.id
+            LEFT JOIN sys_dept dept ON pmp.department_id = dept.id
+        where pmp.pid = #{pid}
+    </select>
+    <select id="listByPids" resultType="com.fenglei.model.prd.entity.PrdMoProcess">
+        SELECT pmp.*
+        , bpd.number as procedure_number, bpd.name as procedure_name, bpd.remark as procedure_remark
+        , dept.name as department_name
+        FROM prd_mo_process pmp
+        LEFT JOIN prd_mo pm ON pmp.pid = pm.id
+        LEFT JOIN bd_procedure bpd ON pmp.procedure_id = bpd.id
+        LEFT JOIN sys_dept dept ON pmp.department_id = dept.id
+        where pmp.pid in
+        <foreach collection="pids" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

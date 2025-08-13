@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdTempMaterialAttachMapper">
+
+    <resultMap id="materialAttachMap" type="com.fenglei.model.basedata.BdTempMaterialAttach">
+        <result property="id" column="id"></result>
+        <result property="pid" column="pid"></result>
+
+        <result property="attachId" column="attach_id"></result>
+
+        <association property="sysFile" javaType="com.fenglei.model.system.entity.SysFiles">
+            <result property="id" column="file_id"></result>
+            <result property="fileName" column="file_name"></result>
+            <result property="url" column="url"></result>
+            <result property="size" column="size"></result>
+            <result property="fileType" column="file_type"></result>
+            <result property="disableDownload" column="disable_download"></result>
+            <result property="alias" column="alias"></result>
+            <result property="remark" column="remark"></result>
+        </association>
+    </resultMap>
+
+    <select id="getList" resultMap="materialAttachMap">
+        SELECT bma.*, sf.id as file_id, sf.file_name, sf.url, sf.size, sf.file_type
+             , sf.disable_download, sf.alias, sf.remark
+        FROM bd_temp_material_attach bma
+            LEFT JOIN bd_temp_material bm ON bma.pid = bm.id
+            LEFT JOIN sys_files sf ON bma.attach_id = sf.id
+        <where>
+            1 = 1
+            <if test="bdTempMaterialAttach.pids != null and bdTempMaterialAttach.pids.size > 0">
+                and bma.pid in
+                <foreach collection="bdTempMaterialAttach.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdTempMaterialAttach.pid != null and bdTempMaterialAttach.pid != ''">
+                and bma.pid = #{ bdTempMaterialAttach.pid }
+            </if>
+        </where>
+    </select>
+</mapper>

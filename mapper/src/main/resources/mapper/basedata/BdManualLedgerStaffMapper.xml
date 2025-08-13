@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdManualLedgerStaffMapper">
+
+    <select id="getList" resultType="com.fenglei.model.basedata.BdManualLedgerStaff">
+        SELECT bmls.*
+             , su.username as staff_name, su.phone as staff_phone
+        FROM bd_manual_ledger_staff bmls
+            LEFT JOIN sys_user su ON bmls.staff_id = su.id
+        <where>
+            bmls.deleted = 0
+            <if test="bdManualLedgerStaff.pids != null and bdManualLedgerStaff.pids.size > 0">
+                and bmls.pid in
+                <foreach collection="bdManualLedgerStaff.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdManualLedgerStaff.pid != null and bdManualLedgerStaff.pid != ''">
+                and bmls.pid = #{ bdManualLedgerStaff.pid }
+            </if>
+        </where>
+        ORDER BY bmls.id ASC
+    </select>
+</mapper>

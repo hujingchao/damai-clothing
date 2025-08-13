@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdMaterialAuxMapper">
+
+    <resultMap id="materialAuxMap" type="com.fenglei.model.basedata.BdMaterialAux">
+        <result property="id" column="id"></result>
+        <result property="pid" column="pid"></result>
+        <result property="numerator" column="numerator"></result>
+        <result property="denominator" column="denominator"></result>
+
+        <result property="materialDetailId" column="material_detail_id"></result>
+        <result property="colorId" column="aux_color_id"></result>
+        <result property="color" column="aux_color"></result>
+        <result property="specificationId" column="aux_specification_id"></result>
+        <result property="specification" column="aux_specification"></result>
+<!--        columnPrefix="aux_"-->
+        <association property="auxMaterial" javaType="com.fenglei.model.basedata.BdMaterial">
+            <result property="id" column="aux_id"></result>
+            <result property="number" column="aux_number"></result>
+            <result property="name" column="aux_name"></result>
+            <result property="unitId" column="aux_unit_id"></result>
+            <result property="unitName" column="aux_unit_name"></result>
+            <result property="mainPicId" column="aux_main_pic_id"></result>
+        </association>
+    </resultMap>
+
+    <select id="getList" resultMap="materialAuxMap">
+        SELECT bma.*
+             , bm.id as aux_id, bm.number as aux_number, bm.name as aux_name, bmd.color_id as aux_color_id, bmc.color as aux_color
+             , bmd.specification_id as aux_specification_id, bms.specification as aux_specification
+             , bm.unit_id as aux_unit_id, bu.name as aux_unit_name, bm.main_pic_id as aux_main_pic_id
+        FROM bd_material_aux bma
+            LEFT JOIN bd_material_detail bmd ON bma.material_detail_id = bmd.id
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+            LEFT JOIN bd_material bm ON bmd.pid = bm.id
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+        <where>
+            bma.deleted = 0
+            <if test="bdMaterialAux.pids != null and bdMaterialAux.pids.size > 0">
+                and bma.pid in
+                <foreach collection="bdMaterialAux.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdMaterialAux.pid != null and bdMaterialAux.pid != ''">
+                and bma.pid = #{ bdMaterialAux.pid }
+            </if>
+        </where>
+    </select>
+</mapper>

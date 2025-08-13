@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.quartz.SysJobMapper">
+
+    <select id="getPage" resultType="com.fenglei.model.quartz.entity.SysJob">
+        SELECT sjl.*
+             , ctr.username as creator, utr.username as updater
+        FROM sys_job sj
+            LEFT JOIN sys_user ctr ON sj.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON sj.updater_id = utr.id
+        <where>
+            1 = 1
+            <if test="sysJob.name != null and sysJob.name != ''">
+                and sj.name like concat('%', #{ sysJob.name }, '%')
+            </if>
+            <if test="sysJob.invokeTarget != null and sysJob.invokeTarget != ''">
+                and sj.invoke_target like concat('%', #{ sysJob.invokeTarget }, '%')
+            </if>
+            <if test="sysJob.jobGroup != null and sysJob.jobGroup != ''">
+                and sj.job_group = #{ sysJob.jobGroup }
+            </if>
+            <if test="sysJob.status != null and sysJob.status != ''">
+                and sj.status = #{ sysJob.status }
+            </if>
+        </where>
+        ORDER BY sj.create_time DESC
+    </select>
+
+    <select id="getList" resultType="com.fenglei.model.quartz.entity.SysJob">
+        SELECT sjl.*
+             , ctr.username as creator, utr.username as updater
+        FROM sys_job sj
+            LEFT JOIN sys_user ctr ON sj.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON sj.updater_id = utr.id
+        <where>
+            1 = 1
+            <if test="sysJob.name != null and sysJob.name != ''">
+                and sj.name like concat('%', #{ sysJob.name }, '%')
+            </if>
+            <if test="sysJob.invokeTarget != null and sysJob.invokeTarget != ''">
+                and sj.invoke_target like concat('%', #{ sysJob.invokeTarget }, '%')
+            </if>
+            <if test="sysJob.jobGroup != null and sysJob.jobGroup != ''">
+                and sj.job_group = #{ sysJob.jobGroup }
+            </if>
+            <if test="sysJob.status != null and sysJob.status != ''">
+                and sj.status = #{ sysJob.status }
+            </if>
+        </where>
+        ORDER BY sj.create_time DESC
+    </select>
+
+    <select id="infoById" resultType="com.fenglei.model.quartz.entity.SysJob">
+        SELECT sjl.*
+             , ctr.username as creator, utr.username as updater
+        FROM sys_job sj
+            LEFT JOIN sys_user ctr ON sj.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON sj.updater_id = utr.id
+        <where>
+            sj.id = #{ id }
+        </where>
+    </select>
+</mapper>

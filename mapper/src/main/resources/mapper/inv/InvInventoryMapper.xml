@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.inv.InvInventoryMapper">
+
+    <resultMap id="invInventoryMap" type="com.fenglei.model.inv.entity.InvInventory">
+        <result property="id" column="id"></result>
+
+        <result property="materialDetailId" column="material_detail_id"></result>
+        <result property="colorId" column="color_id"></result>
+        <result property="color" column="color"></result>
+        <result property="specificationId" column="specification_id"></result>
+        <result property="specification" column="specification"></result>
+        <result property="qty" column="qty"></result>
+        <result property="piQty" column="pi_qty"></result>
+        <result property="price" column="price"></result>
+        <result property="lot" column="lot"></result>
+
+        <result property="repositoryId" column="repository_id"></result>
+        <result property="repositoryName" column="repository_name"></result>
+        <result property="positionId" column="position_id"></result>
+        <result property="positionName" column="position_name"></result>
+
+        <association property="material" javaType="com.fenglei.model.basedata.BdMaterial">
+            <result property="id" column="material_id"></result>
+            <result property="number" column="material_number"></result>
+            <result property="name" column="material_name"></result>
+            <result property="materialGroup" column="material_group"></result>
+            <result property="unitId" column="unit_id"></result>
+            <result property="unitName" column="unit_name"></result>
+            <result property="mainPicId" column="main_pic_id"></result>
+            <result property="mainPicUrl" column="main_pic_url"></result>
+        </association>
+    </resultMap>
+
+    <select id="getPage" resultMap="invInventoryMap">
+        SELECT inv.*
+             , bmd.pid as material_id, bm.number as material_number, bm.name as material_name, bm.material_group
+             , bm.unit_id, bu.name as unit_name
+             , bm.main_pic_id as main_pic_id, sf.url as main_pic_url
+             , bmd.color_id, bmc.color, bmd.specification_id, bms.specification
+             , rpsy.name as repository_name, posi.name as position_name
+             , ctr.username as creator, utr.username as updater
+        FROM inv_inventory inv
+            LEFT JOIN bd_material_detail bmd ON inv.material_detail_id = bmd.id
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+            LEFT JOIN bd_material bm ON bmd.pid = bm.id
+            LEFT JOIN sys_files sf on bmd.main_pic_id = sf.id
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN bd_repository rpsy ON inv.repository_id = rpsy.id
+            LEFT JOIN bd_position posi ON inv.position_id = posi.id
+            LEFT JOIN sys_user ctr ON inv.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON inv.updater_id = utr.id
+        <where>
+            inv.deleted = 0 and (inv.qty &gt; 0 or inv.pi_qty &gt; 0) and bmc.deleted = 0 and bms.deleted = 0 and bm.deleted = 0 and bmd.deleted = 0
+            <if test="invInventory.id != null and invInventory.id != ''">
+                and inv.id = #{ invInventory.id }
+            </if>
+            <if test="invInventory.ids != null and invInventory.ids.size > 0">
+                and inv.id in
+                <foreach collection="invInventory.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="invInventory.inMaterialGroup != null and invInventory.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="invInventory.inMaterialGroup" item="materialGroup" index="index"
+                         open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="invInventory.materialGroupId !=null and invInventory.materialGroupId!=''">
+                and bm.material_group =#{invInventory.materialGroupId}
+            </if>
+            <if test="invInventory.productId != null and invInventory.productId != ''">
+                and bm.id = #{ invInventory.productId }
+            </if>
+            <if test="invInventory.productIds != null and invInventory.productIds.size > 0">
+                and bm.id in
+                <foreach collection="invInventory.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="invInventory.color != null and invInventory.color != ''">
+                and bmc.color = #{ invInventory.color }
+            </if>
+            <if test="invInventory.color != null and invInventory.color == ''">
+                and (bmc.color is null or bmc.color = '')
+            </if>
+            <if test="invInventory.colorLike != null and invInventory.colorLike != ''">
+                and bmc.color like concat('%', #{ invInventory.colorLike }, '%')
+            </if>
+            <if test="invInventory.specification != null and invInventory.specification != ''">
+                and bms.specification = #{ invInventory.specification }
+            </if>
+            <if test="invInventory.specification != null and invInventory.specification == ''">
+                and (bms.specification is null or bms.specification = '')
+            </if>
+            <if test="invInventory.specificationLike != null and invInventory.specificationLike != ''">
+                and bms.specification like concat('%', #{ invInventory.specificationLike }, '%')
+            </if>
+            <if test="invInventory.repositoryId != null and invInventory.repositoryId != ''">
+                and inv.repository_id = #{ invInventory.repositoryId }
+            </if>
+            <if test="invInventory.repositoryIds != null and invInventory.repositoryIds.size > 0">
+                and inv.repository_id in
+                <foreach collection="invInventory.repositoryIds" item="repositoryId" index="index"
+                         open="(" separator="," close=")">
+                    #{ repositoryId }
+                </foreach>
+            </if>
+            <if test="invInventory.positionId != null and invInventory.positionId != ''">
+                and inv.position_id = #{ invInventory.positionId }
+            </if>
+            <if test="invInventory.positionId != null and invInventory.positionId == ''">
+                and (inv.position_id is null or inv.position_id = '')
+            </if>
+            <if test="invInventory.positionIds != null and invInventory.positionIds.size > 0">
+                and inv.position_id in
+                <foreach collection="invInventory.positionIds" item="positionId" index="index"
+                         open="(" separator="," close=")">
+                    #{ positionId }
+                </foreach>
+            </if>
+            <if test="invInventory.lot != null and invInventory.lot != ''">
+                and inv.lot = #{ invInventory.lot }
+            </if>
+            <if test="invInventory.lotLike != null and invInventory.lotLike != ''">
+                and inv.lot like concat('%', #{ invInventory.lotLike }, '%')
+            </if>
+        </where>
+        ORDER BY inv.material_detail_id
+    </select>
+
+    <select id="getList" resultMap="invInventoryMap">
+        SELECT inv.*
+             , bmd.pid as material_id, bm.number as material_number, bm.name as material_name, bm.material_group
+             , bm.unit_id, bu.name as unit_name
+             , bm.main_pic_id as main_pic_id, sf.url as main_pic_url
+             , bmd.color_id, bmc.color, bmd.specification_id, bms.specification
+             , rpsy.name as repository_name, posi.name as position_name
+             , ctr.username as creator, utr.username as updater
+        FROM inv_inventory inv
+            LEFT JOIN bd_material_detail bmd ON inv.material_detail_id = bmd.id
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+            LEFT JOIN bd_material bm ON bmd.pid = bm.id
+            LEFT JOIN sys_files sf on bm.main_pic_id = sf.id
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN bd_repository rpsy ON inv.repository_id = rpsy.id
+            LEFT JOIN bd_position posi ON inv.position_id = posi.id
+            LEFT JOIN sys_user ctr ON inv.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON inv.updater_id = utr.id
+        <where>
+            inv.deleted = 0 and (inv.qty &gt; 0 or inv.pi_qty &gt; 0) and bmc.deleted = 0 and bms.deleted = 0 and bm.deleted = 0 and bmd.deleted = 0
+            <if test="invInventory.id != null and invInventory.id != ''">
+                and inv.id = #{ invInventory.id }
+            </if>
+            <if test="invInventory.materialDetailId != null and invInventory.materialDetailId != ''">
+                and inv.material_detail_id = #{ invInventory.materialDetailId }
+            </if>
+            <if test="invInventory.materialDetailIds != null and invInventory.materialDetailIds.size > 0">
+                and inv.material_detail_id in
+                <foreach collection="invInventory.materialDetailIds" item="item" index="index"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="invInventory.ids != null and invInventory.ids.size > 0">
+                and inv.id in
+                <foreach collection="invInventory.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="invInventory.inMaterialGroup != null and invInventory.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="invInventory.inMaterialGroup" item="materialGroup" index="index"
+                         open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="invInventory.productId != null and invInventory.productId != ''">
+                and bm.id = #{ invInventory.productId }
+            </if>
+            <if test="invInventory.productIds != null and invInventory.productIds.size > 0">
+                and bm.id in
+                <foreach collection="invInventory.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="invInventory.colorId != null and invInventory.colorId != ''">
+                and bmc.id = #{ invInventory.colorId }
+            </if>
+            <if test="invInventory.color != null and invInventory.color != ''">
+                and bmc.color = #{ invInventory.color }
+            </if>
+            <if test="invInventory.color != null and invInventory.color == ''">
+                and (bmc.color is null or bmc.color = '')
+            </if>
+            <if test="invInventory.colorLike != null and invInventory.colorLike != ''">
+                and bmc.color like concat('%', #{ invInventory.colorLike }, '%')
+            </if>
+            <if test="invInventory.specificationId != null and invInventory.specificationId != ''">
+                and bms.id = #{ invInventory.specificationId }
+            </if>
+            <if test="invInventory.specification != null and invInventory.specification != ''">
+                and bms.specification = #{ invInventory.specification }
+            </if>
+            <if test="invInventory.specification != null and invInventory.specification == ''">
+                and (bms.specification is null or bms.specification = '')
+            </if>
+            <if test="invInventory.specificationLike != null and invInventory.specificationLike != ''">
+                and bms.specification like concat('%', #{ invInventory.specificationLike }, '%')
+            </if>
+            <if test="invInventory.repositoryId != null and invInventory.repositoryId != ''">
+                and inv.repository_id = #{ invInventory.repositoryId }
+            </if>
+            <if test="invInventory.repositoryIds != null and invInventory.repositoryIds.size > 0">
+                and inv.repository_id in
+                <foreach collection="invInventory.repositoryIds" item="repositoryId" index="index"
+                         open="(" separator="," close=")">
+                    #{ repositoryId }
+                </foreach>
+            </if>
+            <if test="invInventory.positionId != null and invInventory.positionId != ''">
+                and inv.position_id = #{ invInventory.positionId }
+            </if>
+            <if test="invInventory.positionId != null and invInventory.positionId == ''">
+                and (inv.position_id is null or inv.position_id = '')
+            </if>
+            <if test="invInventory.positionIds != null and invInventory.positionIds.size > 0">
+                and inv.position_id in
+                <foreach collection="invInventory.positionIds" item="positionId" index="index"
+                         open="(" separator="," close=")">
+                    #{ positionId }
+                </foreach>
+            </if>
+            <if test="invInventory.lot != null and invInventory.lot != ''">
+                and inv.lot = #{ invInventory.lot }
+            </if>
+            <if test="invInventory.lot == null or invInventory.lot == ''">
+                and (inv.lot is null or inv.lot = '')
+            </if>
+            <if test="invInventory.lotLike != null and invInventory.lotLike != ''">
+                and inv.lot like concat('%', #{ invInventory.lotLike }, '%')
+            </if>
+        </where>
+        ORDER BY inv.create_time ASC
+    </select>
+
+    <select id="infoById" resultMap="invInventoryMap">
+        SELECT inv.*
+             , bmd.pid as material_id, bm.number as material_number, bm.name as material_name, bm.material_group
+             , bm.unit_id, bu.name as unit_name
+             , bm.main_pic_id as main_pic_id, sf.url as main_pic_url
+             , bmd.color_id, bmc.color, bmd.specification_id, bms.specification
+             , rpsy.name as repository_name, posi.name as position_name
+             , ctr.username as creator, utr.username as updater
+        FROM inv_inventory inv
+            LEFT JOIN bd_material_detail bmd ON inv.material_detail_id = bmd.id
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+            LEFT JOIN bd_material bm ON bmd.pid = bm.id
+            LEFT JOIN sys_files sf on bm.main_pic_id = sf.id
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN bd_repository rpsy ON inv.repository_id = rpsy.id
+            LEFT JOIN bd_position posi ON inv.position_id = posi.id
+            LEFT JOIN sys_user ctr ON inv.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON inv.updater_id = utr.id
+        <where>
+            inv.id = #{ id }
+        </where>
+    </select>
+
+
+    <select id="getPageByLot" resultMap="lotInvMap">
+        SELECT inv.*
+        , bmd.pid as material_id, bm.number as material_number, bm.name as material_name, bm.material_group
+        , bm.unit_id, bu.name as unit_name
+        , bm.main_pic_id as main_pic_id, sf.url as main_pic_url
+        , bmd.color_id, bmc.color, bmd.specification_id, bms.specification
+        , rpsy.name as repository_name, posi.name as position_name
+        , ctr.username as creator, utr.username as updater,
+        SUM( inv.qty ) lotQty
+        FROM inv_inventory inv
+        LEFT JOIN bd_material_detail bmd ON inv.material_detail_id = bmd.id
+        LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+        LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+        LEFT JOIN bd_material bm ON bmd.pid = bm.id
+        LEFT JOIN sys_files sf on bm.main_pic_id = sf.id
+        LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+        LEFT JOIN bd_repository rpsy ON inv.repository_id = rpsy.id
+        LEFT JOIN bd_position posi ON inv.position_id = posi.id
+        LEFT JOIN sys_user ctr ON inv.creator_id = ctr.id
+        LEFT JOIN sys_user utr ON inv.updater_id = utr.id
+        <where>
+            inv.deleted = 0 and (inv.lot is not null and inv.lot != '') and (inv.qty &gt; 0 or inv.pi_qty &gt; 0)
+            and inv.deleted = 0 and bmc.deleted = 0 and bms.deleted = 0 and bm.deleted = 0 and bmd.deleted = 0
+            <if test="invInventory.id != null and invInventory.id != ''">
+                and inv.id = #{ invInventory.id }
+            </if>
+            <if test="invInventory.ids != null and invInventory.ids.size > 0">
+                and inv.id in
+                <foreach collection="invInventory.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="invInventory.inMaterialGroup != null and invInventory.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="invInventory.inMaterialGroup" item="materialGroup" index="index"
+                         open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="invInventory.productId != null and invInventory.productId != ''">
+                and bm.id = #{ invInventory.productId }
+            </if>
+            <if test="invInventory.productIds != null and invInventory.productIds.size > 0">
+                and bm.id in
+                <foreach collection="invInventory.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="invInventory.color != null and invInventory.color != ''">
+                and bmc.color = #{ invInventory.color }
+            </if>
+            <if test="invInventory.color != null and invInventory.color == ''">
+                and (bmc.color is null or bmc.color = '')
+            </if>
+            <if test="invInventory.colorLike != null and invInventory.colorLike != ''">
+                and bmc.color like concat('%', #{ invInventory.colorLike }, '%')
+            </if>
+            <if test="invInventory.specification != null and invInventory.specification != ''">
+                and bms.specification = #{ invInventory.specification }
+            </if>
+            <if test="invInventory.specification != null and invInventory.specification == ''">
+                and (bms.specification is null or bms.specification = '')
+            </if>
+            <if test="invInventory.specificationLike != null and invInventory.specificationLike != ''">
+                and bms.specification like concat('%', #{ invInventory.specificationLike }, '%')
+            </if>
+            <if test="invInventory.repositoryId != null and invInventory.repositoryId != ''">
+                and inv.repository_id = #{ invInventory.repositoryId }
+            </if>
+            <if test="invInventory.repositoryIds != null and invInventory.repositoryIds.size > 0">
+                and inv.repository_id in
+                <foreach collection="invInventory.repositoryIds" item="repositoryId" index="index"
+                         open="(" separator="," close=")">
+                    #{ repositoryId }
+                </foreach>
+            </if>
+            <if test="invInventory.positionId != null and invInventory.positionId != ''">
+                and inv.position_id = #{ invInventory.positionId }
+            </if>
+            <if test="invInventory.positionId != null and invInventory.positionId == ''">
+                and (inv.position_id is null or inv.position_id = '')
+            </if>
+            <if test="invInventory.positionIds != null and invInventory.positionIds.size > 0">
+                and inv.position_id in
+                <foreach collection="invInventory.positionIds" item="positionId" index="index"
+                         open="(" separator="," close=")">
+                    #{ positionId }
+                </foreach>
+            </if>
+            <if test="invInventory.lot != null and invInventory.lot != ''">
+                and inv.lot = #{ invInventory.lot }
+            </if>
+            <if test="invInventory.lotLike != null and invInventory.lotLike != ''">
+                and inv.lot like concat('%', #{ invInventory.lotLike }, '%')
+            </if>
+        </where>
+        GROUP BY inv.lot
+        ORDER BY inv.create_time DESC
+    </select>
+
+
+    <resultMap id="lotInvMap" type="com.fenglei.model.inv.entity.InvInventory">
+        <collection property="materials" select="getMaterialsByLot" column="{lot=lot}"
+                    javaType="java.util.ArrayList" ofType="com.fenglei.model.basedata.BdMaterial">
+        </collection>
+    </resultMap>
+
+    <select id="getMaterialsByLot" resultType="com.fenglei.model.basedata.dto.MaterialDTO">
+        SELECT
+            bmd.pid AS material_id,
+            bm.number AS material_number,
+            bm.NAME AS material_name,
+            bm.material_group,
+            bm.unit_id,
+            bu.NAME AS unit_name,
+            bm.main_pic_id AS main_pic_id,
+            sf.url AS main_pic_url,
+            bmd.color_id,
+            bmc.color,
+            bmd.specification_id,
+            bms.specification,
+            rpsy.NAME AS repository_name,
+            posi.NAME AS position_name,
+            ctr.username AS creator,
+            utr.username AS updater,
+            inv.id as invId,
+            inv.lot,
+            inv.material_detail_id,
+            inv.qty,
+            inv.repository_id,
+            inv.position_id,
+            inv.price,
+            inv.pi_qty
+        FROM
+            inv_inventory inv
+                LEFT JOIN bd_material_detail bmd ON inv.material_detail_id = bmd.id
+                LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+                LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+                LEFT JOIN bd_material bm ON bmd.pid = bm.id
+                LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+                LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+                LEFT JOIN bd_repository rpsy ON inv.repository_id = rpsy.id
+                LEFT JOIN bd_position posi ON inv.position_id = posi.id
+                LEFT JOIN sys_user ctr ON inv.creator_id = ctr.id
+                LEFT JOIN sys_user utr ON inv.updater_id = utr.id
+        WHERE inv.qty &gt; 0 and inv.lot = #{lot}
+    </select>
+    <select id="pageForPackage" resultType="com.fenglei.model.inv.dto.InventoryDto">
+        select bm.id as productId, bm.number as productNum, bm.name as productName,
+        bmd.id as skuId, bmd.number as skuNum, bm.unit_id, bu.name as unitName,
+        ii.price, bmc.id as colorId, bmc.color, bms.id as specificationId, bms.specification,
+        ii.qty, ii.repository_id, ii.position_id, br.name as repositoryName, bp.name as positionName,
+        sf.url as mainPicUrl, ii.id
+        from inv_inventory as ii
+        left join bd_material_detail as bmd on ii.material_detail_id = bmd.id
+        left join bd_material_color as bmc on bmd.color_id = bmc.id
+        left join bd_material_specification as bms on bmd.specification_id = bms.id
+        left join bd_material as bm on bmd.pid = bm.id
+        left join bd_unit as bu on bm.unit_id = bu.id
+        left join bd_repository as br on ii.repository_id = br.id
+        left join bd_position as bp on ii.position_id = bp.id
+        left join sys_files as sf on bmd.main_pic_id = sf.id
+        <where>
+            (ii.lot is null or ii.lot = '') and (ii.qty &gt; 0 or ii.pi_qty &gt; 0)
+            and ii.deleted = 0 and bmc.deleted = 0 and bms.deleted = 0 and bm.deleted = 0 and bmd.deleted = 0
+            <if test="inventoryDto.inMaterialGroup !=null and inventoryDto.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="inventoryDto.inMaterialGroup" item="materialGroup" index="index" open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="inventoryDto.productNum != null and inventoryDto.productNum.trim() != ''">
+                and bm.number like concat('%', #{inventoryDto.productNum}, '%')
+            </if>
+            <if test="inventoryDto.productName != null and inventoryDto.productName.trim() != ''">
+                and bm.name like concat('%', #{inventoryDto.productName}, '%')
+            </if>
+            <if test="inventoryDto.color != null and inventoryDto.color.trim() != ''">
+                and bmc.color like concat('%', #{inventoryDto.color}, '%')
+            </if>
+            <if test="inventoryDto.specification != null and inventoryDto.specification.trim() != ''">
+                and bms.specification like concat('%', #{inventoryDto.specification}, '%')
+            </if>
+            <if test="inventoryDto.selectedIds != null and inventoryDto.selectedIds.size() > 0">
+                and ii.id not in
+                <foreach collection="inventoryDto.selectedIds" item="id" separator="," open="(" close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getMaterialsByLots" resultType="com.fenglei.model.basedata.dto.MaterialDTO">
+        SELECT
+        bmd.pid AS material_id,
+        bm.number AS material_number,
+        bm.NAME AS material_name,
+        bm.material_group,
+        bm.unit_id,
+        bu.NAME AS unit_name,
+        bm.main_pic_id AS main_pic_id,
+        sf.url AS main_pic_url,
+        bmd.color_id,
+        bmc.color,
+        bmd.specification_id,
+        bms.specification,
+        rpsy.NAME AS repository_name,
+        posi.NAME AS position_name,
+        ctr.username AS creator,
+        utr.username AS updater,
+        inv.lot,
+        inv.material_detail_id,
+        inv.qty,
+        inv.repository_id,
+        inv.position_id,
+        inv.price,
+        inv.pi_qty,
+        bmd.number material_detail_number
+        FROM
+        inv_inventory inv
+        LEFT JOIN bd_material_detail bmd ON inv.material_detail_id = bmd.id
+        LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+        LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+        LEFT JOIN bd_material bm ON bmd.pid = bm.id
+        LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+        LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+        LEFT JOIN bd_repository rpsy ON inv.repository_id = rpsy.id
+        LEFT JOIN bd_position posi ON inv.position_id = posi.id
+        LEFT JOIN sys_user ctr ON inv.creator_id = ctr.id
+        LEFT JOIN sys_user utr ON inv.updater_id = utr.id
+        <where>
+           inv.qty &gt; 0
+            <if test="lots != null and lots.size() > 0">
+                and inv.lot in
+                <foreach collection="lots" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

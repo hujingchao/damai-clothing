@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.quartz.SysJobLogMapper">
+
+	<insert id="addJobLog" >
+		insert into sys_job_log(
+		<if test="jobLog.id != null and jobLog.id != 0">id,</if>
+		<if test="jobLog.name != null and jobLog.name != ''">name,</if>
+		<if test="jobLog.jobGroup != null and jobLog.jobGroup != ''">job_group,</if>
+		<if test="jobLog.invokeTarget != null and jobLog.invokeTarget != ''">invoke_target,</if>
+		<if test="jobLog.jobMessage != null and jobLog.jobMessage != ''">job_message,</if>
+		<if test="jobLog.status != null and jobLog.status != ''">status,</if>
+		<if test="jobLog.exceptionInfo != null and jobLog.exceptionInfo != ''">exception_info,</if>
+		create_time
+		)values(
+		<if test="jobLog.id != null and jobLog.id != 0">#{jobLog.id},</if>
+		<if test="jobLog.name != null and jobLog.name != ''">#{jobLog.name},</if>
+		<if test="jobLog.jobGroup != null and jobLog.jobGroup != ''">#{jobLog.jobGroup},</if>
+		<if test="jobLog.invokeTarget != null and jobLog.invokeTarget != ''">#{jobLog.invokeTarget},</if>
+		<if test="jobLog.jobMessage != null and jobLog.jobMessage != ''">#{jobLog.jobMessage},</if>
+		<if test="jobLog.status != null and jobLog.status != ''">#{jobLog.status},</if>
+		<if test="jobLog.exceptionInfo != null and jobLog.exceptionInfo != ''">#{jobLog.exceptionInfo},</if>
+		sysdate()
+		)
+	</insert>
+
+
+ 	<update id="cleanJobLog">
+        truncate table sys_job_log
+    </update>
+
+	<select id="getPage" resultType="com.fenglei.model.quartz.entity.SysJobLog">
+		SELECT sjl.*
+		     , ctr.username as creator, utr.username as updater
+		FROM sys_job_log sjl
+		    LEFT JOIN sys_user ctr ON sjl.creator_id = ctr.id
+		    LEFT JOIN sys_user utr ON sjl.updater_id = utr.id
+		<where>
+			1 = 1
+			<if test="sysJobLog.name != null and sysJobLog.name != ''">
+				and sjl.name like concat('%', #{ sysJobLog.name }, '%')
+			</if>
+			<if test="sysJobLog.jobGroup != null and sysJobLog.jobGroup != ''">
+				and sjl.job_group = #{ sysJobLog.jobGroup }
+			</if>
+			<if test="sysJobLog.status != null and sysJobLog.status != ''">
+				and sjl.status = #{ sysJobLog.status }
+			</if>
+			<if test="sysJobLog.beginTime != null">
+				and sjl.begin_time &gt;= #{ sysJobLog.beginTime }
+			</if>
+			<if test="sysJobLog.endTime != null">
+				and sjl.end_time &lt;= #{ sysJobLog.endTime }
+			</if>
+		</where>
+		ORDER BY sjl.create_time DESC
+	</select>
+
+	<select id="getList" resultType="com.fenglei.model.quartz.entity.SysJobLog">
+		SELECT sjl.*
+		     , ctr.username as creator, utr.username as updater
+		FROM sys_job_log sjl
+		    LEFT JOIN sys_user ctr ON sjl.creator_id = ctr.id
+			LEFT JOIN sys_user utr ON sjl.updater_id = utr.id
+		<where>
+			1 = 1
+			<if test="sysJobLog.name != null and sysJobLog.name != ''">
+				and sjl.name like concat('%', #{ sysJobLog.name }, '%')
+			</if>
+			<if test="sysJobLog.jobGroup != null and sysJobLog.jobGroup != ''">
+				and sjl.job_group = #{ sysJobLog.jobGroup }
+			</if>
+			<if test="sysJobLog.status != null and sysJobLog.status != ''">
+				and sjl.status = #{ sysJobLog.status }
+			</if>
+			<if test="sysJobLog.beginTime != null">
+				and sjl.begin_time &gt;= #{ sysJobLog.beginTime }
+			</if>
+			<if test="sysJobLog.endTime != null">
+				and sjl.end_time &lt;= #{ sysJobLog.endTime }
+			</if>
+		</where>
+		ORDER BY sjl.create_time DESC
+	</select>
+</mapper>

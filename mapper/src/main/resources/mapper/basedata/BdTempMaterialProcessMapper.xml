@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdTempMaterialProcessMapper">
+
+    <resultMap id="materialProcessMap" type="com.fenglei.model.basedata.BdTempMaterialProcess">
+        <result property="id" column="id"></result>
+        <result property="pid" column="pid"></result>
+
+        <result property="attachId" column="attach_id"></result>
+        <result property="process" column="process"></result>
+        <result property="remark" column="remark"></result>
+
+        <association property="sysFile" javaType="com.fenglei.model.system.entity.SysFiles">
+            <result property="fileName" column="file_name"></result>
+            <result property="url" column="url"></result>
+            <result property="size" column="size"></result>
+            <result property="fileType" column="file_type"></result>
+            <result property="disableDownload" column="disable_download"></result>
+            <result property="alias" column="alias"></result>
+            <result property="remark" column="file_remark"></result>
+        </association>
+    </resultMap>
+
+    <select id="getList" resultMap="materialProcessMap">
+        SELECT bmp.*, sf.file_name, sf.url, sf.size, sf.file_type
+             , sf.disable_download, sf.alias, sf.remark as file_remark
+        FROM bd_temp_material_process bmp
+            LEFT JOIN bd_temp_material bm ON bmp.pid = bm.id
+            LEFT JOIN sys_files sf ON bmp.attach_id = sf.id
+        <where>
+            1 = 1
+            <if test="bdTempMaterialProcess.pids != null and bdTempMaterialProcess.pids.size > 0">
+                and bmp.pid in
+                <foreach collection="bdTempMaterialProcess.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdTempMaterialProcess.pid != null and bdTempMaterialProcess.pid != ''">
+                and bmp.pid = #{ bdTempMaterialProcess.pid }
+            </if>
+        </where>
+    </select>
+</mapper>

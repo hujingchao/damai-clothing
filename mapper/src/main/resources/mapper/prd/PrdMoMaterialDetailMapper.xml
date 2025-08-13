@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.prd.PrdMoMaterialDetailMapper">
+
+    <resultMap id="moMaterialDetailMap" type="com.fenglei.model.prd.entity.PrdMoMaterialDetail">
+        <result property="id" column="id" />
+        <result property="pid" column="pid" />
+        <result property="seq" column="seq" />
+        <result property="materialDetailId" column="material_detail_id" />
+        <result property="supplierId" column="supplier_id" />
+        <result property="supplierName" column="supplier_name" />
+        <result property="numerator" column="numerator" />
+        <result property="denominator" column="denominator" />
+        <result property="theoryQty" column="theory_qty" />
+        <result property="colorId" column="color_id" />
+        <result property="specificationId" column="specification_id" />
+        <result property="color" column="color" />
+        <result property="specification" column="specification" />
+        <result property="theoryQty" column="theory_qty" />
+        <result property="surplusTheoryQty" column="surplus_theory_qty" />
+        <result property="parentSkuId" column="parentSkuId" />
+
+        <association property="rawMaterial" javaType="com.fenglei.model.basedata.BdMaterial">
+            <result property="id" column="product_id" />
+            <result property="name" column="productName" />
+            <result property="number" column="productNum" />
+            <result property="mainPicId" column="mainPicId"></result>
+            <result property="mainPicUrl" column="mainPicUrl" />
+            <result property="unitName" column="unitName" />
+        </association>
+    </resultMap>
+
+    <select id="getList" resultMap="moMaterialDetailMap">
+        select pmmd.*
+             , supp.name as supplier_name
+             , bmd.color_id, bmd.specification_id, bmc.color, bms.specification
+             , bmd.pid as product_id, bm.name as productName, bm.number as productNum
+             , bm.main_pic_id as mainPicId, sf.url as mainPicUrl, bu.name as unitName
+             , pmcsd.product_id as parentSkuId
+             , case when ifnull(pmmd.denominator, 0) &lt;= 0
+                    then 0
+                when ifnull(pmcsd.qty, 0) - ifnull(pmcsd.cutting_qty, 0) &lt;= 0
+                    then 0
+                else ROUND((ifnull(pmcsd.qty, 0) - ifnull(pmcsd.cutting_qty, 0)) * ifnull(pmmd.numerator, 0) / pmmd.denominator) end as surplus_theory_qty
+        from prd_mo_material_detail pmmd
+            left join prd_mo_color_spec_data pmcsd on pmmd.pid = pmcsd.id
+            left join bd_material_detail bmd on pmmd.material_detail_id = bmd.id
+            left join bd_material bm on bmd.pid = bm.id
+            left join bd_material_color bmc on bmd.color_id = bmc.id
+            left join bd_material_specification bms on bmd.specification_id = bms.id
+            left join sys_files sf on bm.main_pic_id = sf.id
+            left join bd_unit bu on bm.unit_id = bu.id
+            left join bd_supplier supp on pmmd.supplier_id = supp.id
+        <where>
+            <if test="moMaterialDetail.pid != null and moMaterialDetail.pid != ''">
+                and pmmd.pid = #{ moMaterialDetail.pid }
+            </if>
+            <if test="moMaterialDetail.pids != null and moMaterialDetail.pids.size > 0">
+                and pmmd.pid in
+                <foreach collection="moMaterialDetail.pids" item="pid" index="index"
+                         open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="moMaterialDetail.moId != null and moMaterialDetail.moId != ''">
+                and pmcsd.pid = #{ moMaterialDetail.moId }
+            </if>
+        </where>
+    </select>
+
+    <select id="getListOtherBill" resultMap="moMaterialDetailMap">
+        select pmmd.*
+             , supp.name as supplier_name
+             , bmd.color_id, bmd.specification_id, bmc.color, bms.specification
+             , bmd.pid as product_id, bm.name as productName, bm.number as productNum
+             , bm.main_pic_id as mainPicId, sf.url as mainPicUrl, bu.name as unitName
+             , case when ifnull(pmmd.denominator, 0) &lt;= 0
+                    then 0
+                when ifnull(pmcsd.qty, 0) - ifnull(pmcsd.cutting_qty, 0) &lt;= 0
+                    then 0
+                else ROUND((ifnull(pmcsd.qty, 0) - ifnull(pmcsd.cutting_qty, 0)) * ifnull(pmmd.numerator, 0) / pmmd.denominator) end as surplus_theory_qty
+        from prd_mo_material_detail pmmd
+            left join prd_mo_color_spec_data pmcsd on pmmd.pid = pmcsd.id
+            left join prd_mo pm on pmcsd.pid = pm.id
+            left join bd_material_detail bmd on pmmd.material_detail_id = bmd.id
+            left join bd_material bm on bmd.pid = bm.id
+            left join bd_material_color bmc on bmd.color_id = bmc.id
+            left join bd_material_specification bms on bmd.specification_id = bms.id
+            left join sys_files sf on bm.main_pic_id = sf.id
+            left join bd_unit bu on bm.unit_id = bu.id
+            left join bd_supplier supp on pmmd.supplier_id = supp.id
+        <where>
+            pm.bill_status = 2 and pm.id &lt;&gt; #{ moMaterialDetail.moId }
+            and pmmd.material_detail_id in
+            <foreach collection="moMaterialDetail.materialDetailIds" item="materialDetailId" index="index"
+                     open="(" separator="," close=")">
+                #{ materialDetailId }
+            </foreach>
+        </where>
+    </select>
+</mapper>

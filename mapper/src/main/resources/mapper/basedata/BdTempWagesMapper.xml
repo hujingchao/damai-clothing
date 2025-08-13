@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdTempWagesMapper">
+
+    <select id="getPage" resultType="com.fenglei.model.basedata.BdTempWages">
+        SELECT bw.*
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , etr.username as enabler
+        FROM bd_temp_wages bw
+            LEFT JOIN sys_user ctr ON bw.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bw.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bw.auditor_id = atr.id
+            LEFT JOIN sys_user etr ON bw.enabler_id = etr.id
+        <where>
+            1 = 1
+            <if test="bdTempWages.number != null and bdTempWages.number != ''">
+                and bw.number like concat('%', #{ bdTempWages.number }, '%')
+            </if>
+            <if test="bdTempWages.name != null and bdTempWages.name != ''">
+                and bw.name like concat('%', #{ bdTempWages.name }, '%')
+            </if>
+            <if test="bdTempWages.ids != null and bdTempWages.ids.size > 0">
+                and bw.id in
+                <foreach collection="bdTempWages.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="bdTempWages.excludeIds != null and bdTempWages.excludeIds.size > 0">
+                and bw.id not in
+                <foreach collection="bdTempWages.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+            <if test="bdTempWages.inStatus != null and bdTempWages.inStatus.size > 0">
+                and bw.status in
+                <foreach collection="bdTempWages.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+            <if test="bdTempWages.enabled != null">
+                and bw.enabled = #{ bdTempWages.enabled }
+            </if>
+        </where>
+        ORDER BY bw.create_time DESC
+    </select>
+
+    <select id="getList" resultType="com.fenglei.model.basedata.BdTempWages">
+        SELECT bw.*
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , etr.username as enabler
+        FROM bd_temp_wages bw
+            LEFT JOIN sys_user ctr ON bw.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bw.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bw.auditor_id = atr.id
+            LEFT JOIN sys_user etr ON bw.enabler_id = etr.id
+        <where>
+            1 = 1
+            <if test="bdTempWages.number != null and bdTempWages.number != ''">
+                and bw.number like concat('%', #{ bdTempWages.number }, '%')
+            </if>
+            <if test="bdTempWages.name != null and bdTempWages.name != ''">
+                and bw.name like concat('%', #{ bdTempWages.name }, '%')
+            </if>
+            <if test="bdTempWages.ids != null and bdTempWages.ids.size > 0">
+                and bw.id in
+                <foreach collection="bdTempWages.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="bdTempWages.excludeIds != null and bdTempWages.excludeIds.size > 0">
+                and bw.id not in
+                <foreach collection="bdTempWages.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+            <if test="bdTempWages.inStatus != null and bdTempWages.inStatus.size > 0">
+                and bw.status in
+                <foreach collection="bdTempWages.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+            <if test="bdTempWages.enabled != null">
+                and bw.enabled = #{ bdTempWages.enabled }
+            </if>
+            <if test="bdTempWages.creatorId != null and bdTempWages.creatorId != ''">
+                and bw.creator_id = #{ bdTempWages.creatorId }
+            </if>
+        </where>
+        ORDER BY bw.create_time DESC
+    </select>
+
+    <select id="infoById" resultType="com.fenglei.model.basedata.BdTempWages">
+        SELECT bw.*
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , etr.username as enabler
+        FROM bd_temp_wages bw
+            LEFT JOIN sys_user ctr ON bw.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bw.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bw.auditor_id = atr.id
+            LEFT JOIN sys_user etr ON bw.enabler_id = etr.id
+        <where>
+            bw.id = #{ id }
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.prd.PrdCuttingTicketItemReportMapper">
+
+    <select id="listByCuttingIds" resultType="com.fenglei.model.prd.entity.PrdCuttingTicketItemReport">
+        select pctir.id, pctir.pid, pctir.cutting_route_id, pctir.seq, pctir.procedure_no, pctir.procedure_id,
+        pctir.price, pctir.reported_qty, pctir.reporter_id, pctir.report_time, pctir.remark, pcr.pid as cuttingId
+        from prd_cutting_ticket_item_report as pctir
+        inner join prd_cutting_route as pcr on pctir.cutting_route_id = pcr.id
+        where pcr.pid in
+        <foreach collection="cuttingIds" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <select id="listByCuttingId" resultType="com.fenglei.model.prd.entity.PrdCuttingTicketItemReport">
+        select pctir.id, pctir.pid, pctir.cutting_route_id, pctir.seq, pctir.procedure_no, pctir.procedure_id,
+        pctir.price, pctir.reported_qty, pctir.reporter_id, pctir.report_time, pctir.remark, pcr.pid as cuttingId
+        from prd_cutting_ticket_item_report as pctir
+        inner join prd_cutting_route as pcr on pctir.cutting_route_id = pcr.id
+        where pcr.pid = #{cuttingId}
+    </select>
+
+    <select id="listGroupData" resultType="com.fenglei.model.prd.entity.PrdCuttingTicketItemReport">
+        select pid, procedure_id, sum(reported_qty) as reported_qty
+        from prd_cutting_ticket_item_report
+        where pid in
+        <foreach collection="itemIds" item="itemId" index="index" open="(" separator="," close=")">
+            #{ itemId }
+        </foreach>
+        group by pid, procedure_id
+    </select>
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.system.DashboardMapper">
+
+    <select id="getTodayFinishedQty" resultType="java.math.BigDecimal">
+        select sum(reported_qty) as todayFinishedQty from prd_cutting_ticket_item_report as pctir
+        <where>
+            to_days(pctir.report_time) = to_days(now())
+        </where>
+    </select>
+    <select id="getInProductionQty" resultType="java.math.BigDecimal">
+        select sum(if(product_qty > reported_qty, product_qty - reported_qty, 0)) as inProductionQty from prd_cutting as pc
+        <where>
+            pc.reported_status = 0
+        </where>
+    </select>
+    <select id="getTodaySalary" resultType="java.math.BigDecimal">
+        SELECT sum(pctir.price * pctir.reported_qty) AS todaySalary FROM prd_cutting_ticket_item_report AS pctir
+        <where>
+            to_days(pctir.report_time) = to_days(now())
+        </where>
+    </select>
+    <select id="listTop10InvInfo" resultType="com.fenglei.model.system.dto.DashboardInvInfo">
+        select br.no      as repositoryCode,
+               br.name    as repositoryName,
+               bm.number  as productSn,
+               bm.name    as productName,
+               bmd.number as sjNumber,
+               bmc.color,
+               bms.specification,
+               ii.qty,
+               ii.pi_qty
+        from inv_inventory as ii
+                 left join bd_repository as br on ii.repository_id = br.id
+                 left join bd_material_detail as bmd on ii.material_detail_id = bmd.id
+                 left join bd_material as bm on bmd.pid = bm.id
+                 left join bd_material_color as bmc on bmd.color_id = bmc.id
+                 left join bd_material_specification as bms on bmd.specification_id = bms.id
+        order by ii.qty desc
+        limit 10
+    </select>
+    <select id="listMoCount" resultType="com.fenglei.model.system.dto.DashboardMoInfo">
+        select count(*) as count, DATE_FORMAT(create_time,'%Y-%m-%d') as date from prd_mo
+        <where>
+            DATE_FORMAT(create_time,'%Y-%m-%d') &gt;= #{beginDate} and DATE_FORMAT(create_time,'%Y-%m-%d') &lt;= #{endDate}
+        </where>
+        GROUP BY DATE_FORMAT(create_time,'%Y-%m-%d')
+        order by create_time
+    </select>
+</mapper>
+

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdMaterialDetailMapper">
+
+    <select id="getList" resultType="com.fenglei.model.basedata.BdMaterialDetail">
+        SELECT bmd.*, bmc.color, bms.specification
+        FROM bd_material_detail bmd
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+        <where>
+            bmd.deleted = 0
+--             and (
+--                 (bmc.color is not null and bmc.color &lt;&gt; '' and bms.specification is not null and bms.specification &lt;&gt; '')
+--                 or (bmc.color is not null and bmc.color &lt;&gt; '' and (bms.specification is null or bms.specification = ''))
+--                 or ((bmc.color is null or bmc.color = '') and bms.specification is not null and bms.specification &lt;&gt; '')
+--             )
+            <if test="bdMaterialDetail.pids != null and bdMaterialDetail.pids.size > 0">
+                and bmd.pid in
+                <foreach collection="bdMaterialDetail.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdMaterialDetail.pid != null and bdMaterialDetail.pid != ''">
+                and bmd.pid = #{ bdMaterialDetail.pid }
+            </if>
+        </where>
+    </select>
+
+    <select id="getList2" resultType="com.fenglei.model.basedata.BdMaterialDetail">
+        SELECT bmd.*, bmc.color, bms.specification
+        FROM bd_material_detail bmd
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+        <where>
+            bmd.deleted = 0
+            <if test="bdMaterialDetail.pids != null and bdMaterialDetail.pids.size > 0">
+                and bmd.pid in
+                <foreach collection="bdMaterialDetail.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdMaterialDetail.pid != null and bdMaterialDetail.pid != ''">
+                and bmd.pid = #{ bdMaterialDetail.pid }
+            </if>
+            <if test="bdMaterialDetail.colorId != null and bdMaterialDetail.colorId != ''">
+                and bmd.color_id = #{ bdMaterialDetail.colorId }
+            </if>
+            <if test="bdMaterialDetail.color != null and bdMaterialDetail.color != ''">
+                and bmc.color = #{ bdMaterialDetail.color }
+            </if>
+            <if test="bdMaterialDetail.color != null and bdMaterialDetail.color == ''">
+                and (bmc.color is null or bmc.color = '')
+            </if>
+            <if test="bdMaterialDetail.specificationId != null and bdMaterialDetail.specificationId != ''">
+                and bmd.specification_id = #{ bdMaterialDetail.specificationId }
+            </if>
+            <if test="bdMaterialDetail.specification != null and bdMaterialDetail.specification != ''">
+                and bms.specification = #{ bdMaterialDetail.specification }
+            </if>
+            <if test="bdMaterialDetail.specification != null and bdMaterialDetail.specification == ''">
+                and (bms.specification is null or bms.specification = '')
+            </if>
+        </where>
+    </select>
+
+    <select id="getMaterialDTOByDetailIds" resultType="com.fenglei.model.basedata.dto.MaterialDTO">
+        SELECT
+            bmd.id material_detail_id,
+            bmd.pid AS material_id,
+            bm.number AS material_number,
+            bm.NAME AS material_name,
+            bm.material_group,
+            bm.unit_id,
+            bu.NAME AS unit_name,
+            bm.main_pic_id AS main_pic_id,
+            sf.url AS main_pic_url,
+            bmd.color_id,
+            bmc.color,
+            bmd.specification_id,
+            bms.specification
+        FROM
+            bd_material_detail bmd
+                LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+                LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+                LEFT JOIN bd_material bm ON bmd.pid = bm.id
+                LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+                LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+        WHERE bmd.id in
+        <foreach collection="materialDetailIds" item="id" index="index" open="(" separator="," close=")">
+            #{ id }
+        </foreach>
+    </select>
+
+    <select id="getNos" resultType="java.lang.String">
+        SELECT *
+        FROM (
+            select number from bd_material
+            union all
+            select number from bd_temp_material
+        ) tb
+        where number like concat(#{ noLike }, '%')
+        order by number desc
+    </select>
+
+    <select id="infoById" resultType="com.fenglei.model.basedata.BdMaterialDetail">
+        SELECT bmd.*, bmc.color, bms.specification
+        FROM bd_material_detail bmd
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+        <where>
+            bmd.deleted = 0
+            and bmd.id = #{ id }
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,81 @@
+package ${package.ServiceImpl};
+
+import ${package.Entity}.${entity};
+import ${package.Mapper}.${table.mapperName};
+import ${package.Service}.${table.serviceName};
+import ${superServiceImplClassPackage};
+import org.springframework.stereotype.Service;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+
+/**
+ * <p>
+ * $!{table.comment} 服务实现类
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Service
+#if(${kotlin})
+open class ${table.serviceImplName} : ${superServiceImplClass}<${table.mapperName}, ${entity}>(), ${table.serviceName} {
+
+}
+#else
+public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.mapperName}, ${entity}> implements ${table.serviceName} {
+
+    /**
+     * 新增
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ${entity} add(${entity} ${table.entityPath}) {
+        return null;
+    }
+
+    /**
+     * 删除
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean myRemoveById(String id) {
+        return null;
+    }
+
+    /**
+     * 批量删除
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean myRemoveByIds(List<String> ids) {
+        return null;
+    }
+
+    /**
+     * 更新
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean myUpdate(${entity} ${table.entityPath}) {
+        return true;
+    }
+
+    /**
+     * 分页查询
+     */
+    @Override
+    public IPage<${entity}> myPage(Page page, ${entity} ${table.entityPath}) {
+        return null;
+    }
+
+    /**
+     * 详情
+     */
+    @Override
+    public ${entity} detail(String id) {
+        return null;
+    }
+}
+#end

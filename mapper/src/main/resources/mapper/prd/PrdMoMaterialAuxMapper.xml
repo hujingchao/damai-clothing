@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.prd.PrdMoMaterialAuxMapper">
+
+    <resultMap id="moMaterialAuxMap" type="com.fenglei.model.prd.entity.PrdMoMaterialAux">
+        <result property="id" column="id" />
+        <result property="pid" column="pid" />
+        <result property="seq" column="seq" />
+        <result property="materialDetailId" column="material_detail_id" />
+        <result property="supplierId" column="supplier_id" />
+        <result property="supplierName" column="supplier_name" />
+        <result property="numerator" column="numerator" />
+        <result property="denominator" column="denominator" />
+        <result property="theoryQty" column="theory_qty" />
+        <result property="colorId" column="color_id" />
+        <result property="specificationId" column="specification_id" />
+        <result property="color" column="color" />
+        <result property="specification" column="specification" />
+        <result property="theoryQty" column="theory_qty" />
+
+        <association property="auxMaterial" javaType="com.fenglei.model.basedata.BdMaterial">
+            <result property="id" column="product_id" />
+            <result property="name" column="productName" />
+            <result property="number" column="productNum" />
+            <result property="mainPicId" column="mainPicId"></result>
+            <result property="mainPicUrl" column="mainPicUrl" />
+            <result property="unitName" column="unitName" />
+        </association>
+    </resultMap>
+
+    <select id="getList" resultMap="moMaterialAuxMap">
+        select pmma.*
+             , supp.name as supplier_name, bmd.color_id
+             , bmd.specification_id, bmc.color, bms.specification
+             , bmd.pid as product_id, bm.name as productName, bm.number as productNum
+             , bm.main_pic_id as mainPicId, sf.url as mainPicUrl, bu.name as unitName
+        from prd_mo_material_aux pmma
+            left join bd_material_detail bmd on pmma.material_detail_id = bmd.id
+            left join bd_material bm on bmd.pid = bm.id
+            left join bd_material_color bmc on bmd.color_id = bmc.id
+            left join bd_material_specification bms on bmd.specification_id = bms.id
+            left join sys_files sf on bm.main_pic_id = sf.id
+            left join bd_unit bu on bm.unit_id = bu.id
+            left join bd_supplier supp on pmma.supplier_id = supp.id
+        <where>
+            1 = 1
+            <if test="moMaterialAux.pid != null and moMaterialAux.pid != ''">
+                and pmma.pid = #{ moMaterialAux.pid }
+            </if>
+            <if test="moMaterialAux.pids != null and moMaterialAux.pids.size > 0">
+                and pmma.pid in
+                <foreach collection="moMaterialAux.pids" item="pid" index="index"
+                         open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getListOtherBill" resultMap="moMaterialAuxMap">
+        select pmma.*
+             , supp.name as supplier_name, bmd.color_id
+             , bmd.specification_id, bmc.color, bms.specification
+             , bmd.pid as product_id, bm.name as productName, bm.number as productNum
+             , bm.main_pic_id as mainPicId, sf.url as mainPicUrl, bu.name as unitName
+        from prd_mo_material_aux pmma
+            left join prd_mo pm on pmma.pid = pm.id
+            left join bd_material_detail bmd on pmma.material_detail_id = bmd.id
+            left join bd_material bm on bmd.pid = bm.id
+            left join bd_material_color bmc on bmd.color_id = bmc.id
+            left join bd_material_specification bms on bmd.specification_id = bms.id
+            left join sys_files sf on bm.main_pic_id = sf.id
+            left join bd_unit bu on bm.unit_id = bu.id
+            left join bd_supplier supp on pmma.supplier_id = supp.id
+        <where>
+            pm.bill_status = 2 and pm.id &lt;&gt; #{ moMaterialAux.pid }
+            and pmma.material_detail_id in
+            <foreach collection="moMaterialAux.materialDetailIds" item="materialDetailId" index="index"
+                     open="(" separator="," close=")">
+                #{ materialDetailId }
+            </foreach>
+        </where>
+    </select>
+</mapper>

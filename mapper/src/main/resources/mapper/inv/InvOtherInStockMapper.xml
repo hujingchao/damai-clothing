@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.inv.InvOtherInStockMapper">
+
+
+
+    <resultMap id="OtherInStockMap" type="com.fenglei.model.inv.entity.InvOtherInStock">
+        <collection property="itemList" select="selectItem" column="{pid=id}"
+                    javaType="java.util.ArrayList" ofType="com.fenglei.model.inv.entity.InvOtherInStockItem">
+        </collection>
+    </resultMap>
+
+    <select id="selectInStock" resultMap="OtherInStockMap">
+        select ioos.* ,su1.nickname as stockerName,su2.nickname as creator,su3.nickname as updater,su4.nickname as auditor
+        from inv_other_in_stock ioos
+        left join sys_user su1 on su1.id = ioos.stocker_id
+        left join sys_user su2 on su2.id = ioos.creator_id
+        left join sys_user su3 on su3.id = ioos.updater_id
+        left join sys_user su4 on su4.id = ioos.auditor_id
+        <where>
+            <if test="inStock.no != null and inStock.no.trim() != ''.toString()">
+                ioos.no like concat('%',#{inStock.no},'%')
+            </if>
+            <if test="inStock.billStatus != null ">
+                ioos.bill_status =#{inStock.no}
+            </if>
+            <if test="inStock.stockerId != null and inStock.stockerId.trim() != ''.toString()">
+                ioos.stocker_id like concat('%',#{inStock.stockerId},'%')
+            </if>
+
+            <if test="inStock.stockerIdList != null and inStock.stockerIdList.size > 0">
+                and ioos.stocker_id in
+                <foreach collection="inStock.stockerIdList" item="stockerId" index="index"
+                         open="(" separator="," close=")">
+                    #{stockerId}
+                </foreach>
+            </if>
+            <if test="inStock.inbillStatusList != null and inStock.inbillStatusList.size > 0">
+                and ioos.bill_status in
+                <foreach collection="inStock.inbillStatusList" item="billStatus" index="index"
+                         open="(" separator="," close=")">
+                    #{billStatus}
+                </foreach>
+            </if>
+        </where>
+
+
+    </select>
+
+    <select id="selectItem" resultType="com.fenglei.model.inv.entity.InvOtherInStockItem">
+        select ioosi.*,bm.id as material_id,bm.number as material_number, bm.name as material_name, bm.material_group
+             , bm.unit_id, bu.name as unit_name
+             , bm.main_pic_id as main_pic_id, sf.url as main_pic_url
+             , bmd.color_id, bmc.color, bmd.specification_id, bms.specification
+             , rpsy.name as repository_name, posi.name as position_name
+        from inv_other_in_stock_item ioosi
+                 LEFT JOIN bd_material_detail bmd ON ioosi.material_detail_id = bmd.id
+                 LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+                 LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+                 LEFT JOIN bd_material bm ON bmd.pid = bm.id
+                 LEFT JOIN sys_files sf on bm.main_pic_id = sf.id
+                 LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+                 LEFT JOIN bd_repository rpsy ON ioosi.repository_id = rpsy.id
+                 LEFT JOIN bd_position posi ON ioosi.position_id = posi.id
+        where ioosi.pid = #{pid}
+    </select>
+    <select id="detailInStock"  resultMap="OtherInStockMap">
+        select ioos.* ,su1.nickname as stockerName,su2.nickname as creator,su3.nickname as updater,su4.nickname as auditor
+        from inv_other_in_stock ioos
+                 left join sys_user su1 on su1.id = ioos.stocker_id
+                 left join sys_user su2 on su2.id = ioos.creator_id
+                 left join sys_user su3 on su3.id = ioos.updater_id
+                 left join sys_user su4 on su4.id = ioos.auditor_id
+        where ioos.id = #{id}
+
+    </select>
+
+
+</mapper>

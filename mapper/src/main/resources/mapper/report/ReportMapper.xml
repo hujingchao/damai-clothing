@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.report.ReportMapper">
+
+    <select id="materialsReport" resultType="com.fenglei.model.report.vo.MaterialsReportVo">
+        select
+        ppii.material_detail_id,
+        bm.id as productId,
+        bm.name as productName,
+        bmc.id as colorId,
+        bmc.color,
+        bms.id as specificationId,
+        bms.specification
+        from pur_purchase_instock_item ppii
+        left join pur_purchase_instock ppi on ppii.pid = ppi.id
+        left join bd_material_detail bmd on bmd.id = ppii.material_detail_id
+        left join bd_material bm on bmd.pid = bm.id
+        left join bd_material_color bmc on bmc.id = bmd.color_id
+        left join bd_material_specification bms on bms.id = bmd.specification_id
+        <where>
+            <if test="reportDto.selectType !=null and reportDto.selectType !=''.toString()">
+                and ppi.src_type = #{reportDto.selectType}
+            </if>
+            <if test="reportDto.month !=null">
+                and DATE_FORMAT(ppi.biz_date,'%Y-%m') = #{reportDto.month}
+            </if>
+        </where>
+        group by ppii.material_detail_id
+        order by bm.name,bms.specification,bmc.color
+    </select>
+    <select id="getPurchaseInstockItemList" resultType="com.fenglei.model.pur.entity.PurPurchaseInstockItem"
+            parameterType="com.fenglei.model.report.dto.MaterialsReportDto">
+        select ppii.*, DATE_FORMAT(ppi.biz_date,'%Y-%m-%d') as biz_date
+        from pur_purchase_instock_item ppii
+        left join pur_purchase_instock ppi on ppii.pid = ppi.id
+        <where>
+            <if test="reportDto.selectType !=null and reportDto.selectType !=''.toString()">
+                and ppi.src_type = #{reportDto.selectType}
+            </if>
+            <if test="reportDto.month !=null">
+                and DATE_FORMAT(ppi.biz_date,'%Y-%m') = #{reportDto.month}
+            </if>
+        </where>
+        order by ppi.biz_date desc
+    </select>
+    <select id="cuttingTicketReport" resultType="com.fenglei.model.report.vo.CuttingTicketReportVo">
+
+        select pc.delivery_date,
+               pc.cutting_date,
+               bm.name                         as productName,
+               pct.color,
+               pct.specification,
+               pct.sum_qty,
+               pct.finish_qty,
+               ifnull(sum(pcr.real_qty), 0)    as real_qty,
+               ifnull(sum(pcr.real_pi_qty), 0) as real_pi_qty,
+               ifnull(sum(pcr.theory_qty), 0)  as theory_qty
+        from prd_cutting_ticket pct
+                 left join prd_cutting pc on pc.id = pct.pid
+                 LEFT JOIN bd_material bm ON bm.id = pc.product_id
+                 LEFT JOIN bd_material_detail bmd ON bmd.id = pct.sku_id
+                 left join prd_cutting_raw pcr on pct.sku_id = pcr.parent_sku_id and pct.pid = pcr.pid
+
+        <where>
+
+        <if test="reportDto.startDate != null and reportDto.startDate != ''">
+            and date_format(pc.cutting_date, '%Y-%m-%d') &gt;= #{reportDto.startDate }
+        </if>
+        <if test="reportDto.endDate != null and reportDto.endDate != ''">
+            and date_format(pc.cutting_date, '%Y-%m-%d') &lt;= #{ reportDto.endDate }
+        </if>
+
+            <if test="reportDto.productId != null and reportDto.productId != ''">
+                and pc.product_id =  #{ reportDto.productId }
+            </if>
+
+            <if test="reportDto.colorLike != null and reportDto.colorLike != ''">
+                and pct.color like concat('%', #{ reportDto.colorLike }, '%')
+            </if>
+            <if test="reportDto.specificationLike != null and reportDto.specificationLike != ''">
+                and pct.specification like concat('%', #{ reportDto.specificationLike }, '%')
+            </if>
+
+
+
+
+        </where>
+
+        group by pct.id
+
+
+    </select>
+</mapper>

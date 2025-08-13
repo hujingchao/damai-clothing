@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.pur.PurPurchaseInstockMapper">
+
+    <select id="getPage" resultType="com.fenglei.model.pur.entity.PurPurchaseInstock">
+        SELECT ppi.*
+             , scr.username as stocker
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+        FROM pur_purchase_instock ppi
+            LEFT JOIN sys_user scr ON ppi.stocker_id = scr.id
+            LEFT JOIN sys_user ctr ON ppi.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON ppi.updater_id = utr.id
+            LEFT JOIN sys_user atr ON ppi.auditor_id = atr.id
+        <where>
+            1 = 1
+            <if test="purPurchaseInstock.ids != null and purPurchaseInstock.ids.size > 0">
+                and ppi.id in
+                <foreach collection="purPurchaseInstock.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="purPurchaseInstock.no != null and purPurchaseInstock.no != ''">
+                and ppi.no like concat('%', #{ purPurchaseInstock.no }, '%')
+            </if>
+            <if test="purPurchaseInstock.stockerId != null and purPurchaseInstock.stockerId != ''">
+                and ppi.stocker_id = #{ purPurchaseInstock.stockerId }
+            </if>
+            <if test="purPurchaseInstock.stockerIds != null and purPurchaseInstock.stockerIds.size > 0">
+                and ppi.stocker_id in
+                <foreach collection="purPurchaseInstock.stockerIds" item="stockerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ stockerId }
+                </foreach>
+            </if>
+            <if test="purPurchaseInstock.srcType != null and purPurchaseInstock.srcType != ''">
+                and ppi.src_type = #{ purPurchaseInstock.srcType }
+            </if>
+            <if test="purPurchaseInstock.srcTypes != null and purPurchaseInstock.srcTypes.size > 0">
+                and ppi.src_type in
+                <foreach collection="purPurchaseInstock.srcTypes" item="srcType" index="index"
+                         open="(" separator="," close=")">
+                    #{ srcType }
+                </foreach>
+            </if>
+            <if test="purPurchaseInstock.bizDateBegin != null and purPurchaseInstock.bizDateBegin != ''">
+                and date_format(ppi.biz_date, '%Y-%m-%d') &gt;= #{ purPurchaseInstock.bizDateBegin }
+            </if>
+            <if test="purPurchaseInstock.bizDateEnd != null and purPurchaseInstock.bizDateEnd != ''">
+                and date_format(ppi.biz_date, '%Y-%m-%d') &lt;= #{ purPurchaseInstock.bizDateEnd }
+            </if>
+            <if test="purPurchaseInstock.auditTimeBegin != null and purPurchaseInstock.auditTimeBegin != ''">
+                and date_format(ppi.audit_time, '%Y-%m-%d') &gt;= #{ purPurchaseInstock.auditTimeBegin }
+            </if>
+            <if test="purPurchaseInstock.auditTimeEnd != null and purPurchaseInstock.auditTimeEnd != ''">
+                and date_format(ppi.audit_time, '%Y-%m-%d') &lt;= #{ purPurchaseInstock.auditTimeEnd }
+            </if>
+        </where>
+        ORDER BY ppi.create_time DESC
+    </select>
+
+    <select id="getList" resultType="com.fenglei.model.pur.entity.PurPurchaseInstock">
+        SELECT ppi.*
+             , scr.username as stocker
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+        FROM pur_purchase_instock ppi
+            LEFT JOIN sys_user scr ON ppi.stocker_id = scr.id
+            LEFT JOIN sys_user ctr ON ppi.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON ppi.updater_id = utr.id
+            LEFT JOIN sys_user atr ON ppi.auditor_id = atr.id
+        <where>
+            1 = 1
+            <if test="purPurchaseInstock.ids != null and purPurchaseInstock.ids.size > 0">
+                and ppi.id in
+                <foreach collection="purPurchaseInstock.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="purPurchaseInstock.no != null and purPurchaseInstock.no != ''">
+                and ppi.no like concat('%', #{ purPurchaseInstock.no }, '%')
+            </if>
+            <if test="purPurchaseInstock.stockerId != null and purPurchaseInstock.stockerId != ''">
+                and ppi.stocker_id = #{ purPurchaseInstock.stockerId }
+            </if>
+            <if test="purPurchaseInstock.stockerIds != null and purPurchaseInstock.stockerIds.size > 0">
+                and ppi.stocker_id in
+                <foreach collection="purPurchaseInstock.stockerIds" item="stockerId" index="index"
+                         open="(" separator="," close=")">
+                    #{ stockerId }
+                </foreach>
+            </if>
+            <if test="purPurchaseInstock.srcType != null and purPurchaseInstock.srcType != ''">
+                and ppi.src_type = #{ purPurchaseInstock.srcType }
+            </if>
+            <if test="purPurchaseInstock.srcTypes != null and purPurchaseInstock.srcTypes.size > 0">
+                and ppi.src_type in
+                <foreach collection="purPurchaseInstock.srcTypes" item="srcType" index="index"
+                         open="(" separator="," close=")">
+                    #{ srcType }
+                </foreach>
+            </if>
+            <if test="purPurchaseInstock.bizDateBegin != null and purPurchaseInstock.bizDateBegin != ''">
+                and date_format(ppi.biz_date, '%Y-%m-%d') &gt;= #{ purPurchaseInstock.bizDateBegin }
+            </if>
+            <if test="purPurchaseInstock.bizDateEnd != null and purPurchaseInstock.bizDateEnd != ''">
+                and date_format(ppi.biz_date, '%Y-%m-%d') &lt;= #{ purPurchaseInstock.bizDateEnd }
+            </if>
+            <if test="purPurchaseInstock.auditTimeBegin != null and purPurchaseInstock.auditTimeBegin != ''">
+                and date_format(ppi.audit_time, '%Y-%m-%d') &gt;= #{ purPurchaseInstock.auditTimeBegin }
+            </if>
+            <if test="purPurchaseInstock.auditTimeEnd != null and purPurchaseInstock.auditTimeEnd != ''">
+                and date_format(ppi.audit_time, '%Y-%m-%d') &lt;= #{ purPurchaseInstock.auditTimeEnd }
+            </if>
+        </where>
+        ORDER BY ppi.create_time DESC
+    </select>
+
+    <select id="infoById" resultType="com.fenglei.model.pur.entity.PurPurchaseInstock">
+        SELECT ppi.*
+             , scr.username as stocker
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+        FROM pur_purchase_instock ppi
+            LEFT JOIN sys_user scr ON ppi.stocker_id = scr.id
+            LEFT JOIN sys_user ctr ON ppi.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON ppi.updater_id = utr.id
+            LEFT JOIN sys_user atr ON ppi.auditor_id = atr.id
+        <where>
+            ppi.id = #{ id }
+        </where>
+    </select>
+
+</mapper>

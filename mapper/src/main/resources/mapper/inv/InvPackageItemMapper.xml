@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.inv.InvPackageItemMapper">
+
+    <select id="listByPid" resultType="com.fenglei.model.inv.entity.InvPackageItem">
+        select ipi.id,
+               ipi.pid,
+               ipi.seq,
+               ipi.inv_id,
+               ipi.material_detail_id,
+               ipi.all_qty,
+               ipi.used_qty,
+               ipi.per_qty,
+               ipi.count,
+               ipi.repository_id,
+               ipi.position_id,
+               ipi.price,
+               bm.id     as productId,
+               bm.name   as productName,
+               bm.number as productNum,
+               sf.url    as mainPic,
+               bmc.color,
+               bms.specification,
+               br.name   as repositoryName,
+               bp.name   as positionName,
+               bm.unit_id,
+               bu.name   as unitName
+        from inv_package_item as ipi
+                 left join bd_material_detail as bmd on ipi.material_detail_id = bmd.id
+                 left join bd_material as bm on bmd.pid = bm.id
+                 left join bd_repository as br on ipi.repository_id = br.id
+                 left join bd_position as bp on ipi.position_id = bp.id
+                 left join sys_files as sf on bmd.main_pic_id = sf.id
+                 left join bd_material_color as bmc on bmd.color_id = bmc.id
+                 left join bd_material_specification as bms on bmd.specification_id = bms.id
+                 left join bd_unit as bu on bm.unit_id = bu.id
+        where ipi.pid = #{pid}
+    </select>
+</mapper>

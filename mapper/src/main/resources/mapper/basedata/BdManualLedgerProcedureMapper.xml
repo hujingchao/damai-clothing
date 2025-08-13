@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdManualLedgerProcedureMapper">
+
+    <select id="getList" resultType="com.fenglei.model.basedata.BdManualLedgerProcedure">
+        SELECT bmlp.*
+             , bpd.number as procedure_number, bpd.name as procedure_name, bpd.remark as procedure_remark
+        FROM bd_manual_ledger_procedure bmlp
+            LEFT JOIN bd_procedure bpd ON bmlp.procedure_id = bpd.id
+        <where>
+            bmlp.deleted = 0
+            <if test="bdManualLedgerProcedure.pids != null and bdManualLedgerProcedure.pids.size > 0">
+                and bmlp.pid in
+                <foreach collection="bdManualLedgerProcedure.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdManualLedgerProcedure.pid != null and bdManualLedgerProcedure.pid != ''">
+                and bmlp.pid = #{ bdManualLedgerProcedure.pid }
+            </if>
+        </where>
+        ORDER BY bmlp.id ASC
+    </select>
+</mapper>

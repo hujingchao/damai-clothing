@@ -1,0 +1,57 @@
+server:
+  port: 5141
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://1.13.193.71:3306/damai_clothing?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true
+    username: yaodu
+    password: .3rsL,6@#oX#eI2Y
+  redis:
+    database: 0
+    host: 1.13.193.71
+    port: 6379
+    password:
+  main:
+    allow-bean-definition-overriding: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  freemarker:
+    suffix: .html
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+#  rabbitmq:
+#    host: localhost
+#    port: 5672
+#    username: admin
+#    password: qkmbous^13a!
+#    virtual-host: /damai-clothing
+#    listener:
+#      simple:
+#        acknowledge-mode: manual #设置确认模式手工确认
+#        concurrency: 3 #消费者最小数量
+#        max-concurrency: 10 # 消费者最大数量
+mybatis-plus:
+  configuration:
+    # 驼峰下划线转换
+    map-underscore-to-camel-case: true
+#    # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  type-aliases-package: com.fenglei.model
+minio:
+  view-endpoint: https://damaiclothing.cloud/minio/
+  endpoint: http://1.13.193.71:9000/
+  access-key: minioadmin
+  secret-key: YiusasjK@lskaj1afja
+  bucket: damai-clothing
+wechat:
+  weapp:
+    appid: wxd0ef252079a973f5
+    secret: a9f6300d975c7fcdc186b9e60abe32d6
+project-params:
+  default-customer-avatar: ${minio.view-endpoint}${minio.bucket}/assests/defaultImg.png
+order:
+  cancelTime: 30

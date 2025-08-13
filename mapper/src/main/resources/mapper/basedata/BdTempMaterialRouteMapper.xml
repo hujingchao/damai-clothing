@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdTempMaterialRouteMapper">
+
+    <resultMap id="materialRouteMap" type="com.fenglei.model.basedata.BdTempMaterialRoute">
+        <result property="id" column="id"></result>
+        <result property="pid" column="pid"></result>
+
+        <result property="no" column="no"></result>
+        <result property="procedureId" column="procedure_id"></result>
+        <result property="price" column="price"></result>
+
+        <association property="bdProcedure" javaType="com.fenglei.model.basedata.BdProcedure">
+            <result property="number" column="number"></result>
+            <result property="name" column="name"></result>
+            <result property="remark" column="remark"></result>
+        </association>
+
+        <collection property="routeSpecials" select="selectRouteSpecialsByPid" column="{pid=id}"
+                    javaType="java.util.ArrayList" ofType="com.fenglei.model.basedata.BdTempMaterialRouteSpecial">
+
+        </collection>
+    </resultMap>
+
+    <select id="getListWithSpecial" resultType="com.fenglei.model.basedata.BdTempMaterialRoute">
+        SELECT DISTINCT bmr.*
+        FROM bd_temp_material_route bmr
+            LEFT JOIN bd_temp_material_route_special bmrs ON bmr.id = bmrs.pid
+        <where>
+            1 = 1
+            <if test="bdTempMaterialRouteSpecial.staffId != null and bdTempMaterialRouteSpecial.staffId != ''">
+                AND bmrs.staff_id = #{ bdTempMaterialRouteSpecial.staffId }
+            </if>
+        </where>
+        ORDER BY bmr.no, bmr.id ASC
+    </select>
+
+    <select id="getList" resultMap="materialRouteMap">
+        SELECT DISTINCT bmr.*, bp.number, bp.name, bp.remark
+        FROM bd_temp_material_route bmr
+            LEFT JOIN bd_procedure bp ON bmr.procedure_id = bp.id
+        <where>
+            1 = 1
+            <if test="bdTempMaterialRoute.pids != null and bdTempMaterialRoute.pids.size > 0">
+                and bmr.pid in
+                <foreach collection="bdTempMaterialRoute.pids" item="pid" index="index" open="(" separator="," close=")">
+                    #{ pid }
+                </foreach>
+            </if>
+            <if test="bdTempMaterialRoute.pid != null and bdTempMaterialRoute.pid != ''">
+                and bmr.pid = #{ bdTempMaterialRoute.pid }
+            </if>
+        </where>
+        ORDER BY bmr.no, bmr.id ASC
+    </select>
+
+    <select id="selectRouteSpecialsByPid" resultType="com.fenglei.model.basedata.BdTempMaterialRouteSpecial">
+        SELECT * FROM bd_temp_material_route_special where pid = #{ pid }
+    </select>
+</mapper>

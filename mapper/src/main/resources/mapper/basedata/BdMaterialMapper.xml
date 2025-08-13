@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.basedata.BdMaterialMapper">
+
+    <resultMap id="materialMap" type="com.fenglei.model.basedata.BdMaterial">
+        <result property="id" column="id"></result>
+        <result property="status" column="status"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="creator" column="creator"></result>
+        <result property="creatorId" column="creator_id"></result>
+        <result property="updateTime" column="update_time"></result>
+        <result property="updater" column="updater"></result>
+        <result property="updaterId" column="updater_id"></result>
+        <result property="auditTime" column="audit_time"></result>
+        <result property="auditorId" column="auditor_id"></result>
+        <result property="auditor" column="auditor"></result>
+
+        <result property="number" column="number"></result>
+        <result property="name" column="name"></result>
+        <result property="materialGroup" column="material_group"></result>
+        <result property="unitId" column="unit_id"></result>
+        <result property="unitName" column="unit_name"></result>
+        <result property="remark" column="remark"></result>
+        <result property="mainPicId" column="main_pic_id"></result>
+        <result property="wageId" column="wage_id"></result>
+        <result property="content" column="content"></result>
+        <result property="originalId" column="original_id"></result>
+        <result property="isTemp" column="is_temp"></result>
+        <result property="sjNumber" column="sj_number"></result>
+        <result property="color" column="color"></result>
+        <result property="specification" column="specification"></result>
+        <result property="mtrlDetailId" column="mtrl_detailId"></result>
+        <result property="price" column="price"></result>
+
+        <association property="mainPic" javaType="com.fenglei.model.system.entity.SysFiles">
+            <result property="fileName" column="main_file_name"></result>
+            <result property="url" column="main_url"></result>
+            <result property="size" column="main_size"></result>
+            <result property="fileType" column="main_file_type"></result>
+            <result property="disableDownload" column="main_disable_download"></result>
+            <result property="alias" column="main_alias"></result>
+            <result property="remark" column="main_remark"></result>
+        </association>
+    </resultMap>
+
+    <select id="getPage" resultMap="materialMap">
+        SELECT bm.*, bu.name as unit_name
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+             , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+        FROM bd_material bm
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN sys_user ctr ON bm.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bm.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bm.auditor_id = atr.id
+            LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+        <where>
+            bm.deleted = 0
+            <if test="bdMaterial.number != null and bdMaterial.number != ''">
+                and bm.number like concat('%', #{ bdMaterial.number }, '%')
+            </if>
+            <if test="bdMaterial.name != null and bdMaterial.name != ''">
+                and bm.name like concat('%', #{ bdMaterial.name }, '%')
+            </if>
+            <if test="bdMaterial.materialGroup != null">
+                and bm.material_group = #{ bdMaterial.materialGroup }
+            </if>
+            <if test="bdMaterial.inMaterialGroup != null and bdMaterial.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="bdMaterial.inMaterialGroup" item="materialGroup" index="index" open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="bdMaterial.ids != null and bdMaterial.ids.size > 0">
+                and bm.id in
+                <foreach collection="bdMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="bdMaterial.inStatus != null and bdMaterial.inStatus.size > 0">
+                and bm.status in
+                <foreach collection="bdMaterial.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+            <if test="bdMaterial.excludeIds != null and bdMaterial.excludeIds.size > 0">
+                and bm.id not in
+                <foreach collection="bdMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+        </where>
+        ORDER BY bm.create_time DESC
+    </select>
+
+    <select id="getPageWithTemp" resultMap="materialMap">
+        SELECT * FROM (
+            SELECT bm.*, bu.name as unit_name
+                 , ctr.username as creator, utr.username as updater, atr.username as auditor
+                 , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+                 , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+                 , 1 as is_temp
+            FROM bd_temp_material bm
+                LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+                LEFT JOIN sys_user ctr ON bm.creator_id = ctr.id
+                LEFT JOIN sys_user utr ON bm.updater_id = utr.id
+                LEFT JOIN sys_user atr ON bm.auditor_id = atr.id
+                LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+            <where>
+                bm.creator_id = #{ bdMaterial.creatorId }
+                <if test="bdMaterial.tempIds != null and bdMaterial.tempIds.size > 0">
+                    and bm.id in
+                    <foreach collection="bdMaterial.tempIds" item="tempId" index="index" open="(" separator="," close=")">
+                        #{ tempId }
+                    </foreach>
+                </if>
+            </where>
+
+            UNION ALL
+
+            SELECT bm.*, bu.name as unit_name
+                 , ctr.username as creator, utr.username as updater, atr.username as auditor
+                 , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+                 , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+                 , 0 as is_temp
+            FROM bd_material bm
+                LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+                LEFT JOIN sys_user ctr ON bm.creator_id = ctr.id
+                LEFT JOIN sys_user utr ON bm.updater_id = utr.id
+                LEFT JOIN sys_user atr ON bm.auditor_id = atr.id
+                LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+            <where>
+                bm.deleted = 0
+                <if test="bdMaterial.ids != null and bdMaterial.ids.size > 0">
+                    and bm.id in
+                    <foreach collection="bdMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                        #{ id }
+                    </foreach>
+                </if>
+                <if test="bdMaterial.excludeIds != null and bdMaterial.excludeIds.size > 0">
+                    and bm.id not in
+                    <foreach collection="bdMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                        #{ excludeId }
+                    </foreach>
+                </if>
+            </where>
+        ) as tab
+        <where>
+            1 = 1
+            <if test="bdMaterial.number != null and bdMaterial.number != ''">
+                and number like concat('%', #{ bdMaterial.number }, '%')
+            </if>
+            <if test="bdMaterial.name != null and bdMaterial.name != ''">
+                and name like concat('%', #{ bdMaterial.name }, '%')
+            </if>
+            <if test="bdMaterial.materialGroup != null">
+                and material_group = #{ bdMaterial.materialGroup }
+            </if>
+            <if test="bdMaterial.inStatus != null and bdMaterial.inStatus.size > 0">
+                and status in
+                <foreach collection="bdMaterial.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+            <if test="bdMaterial.inMaterialGroup != null and bdMaterial.inMaterialGroup.size > 0">
+                and material_group in
+                <foreach collection="bdMaterial.inMaterialGroup" item="materialGroup" index="index" open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="getList" resultMap="materialMap">
+        SELECT bm.*, bu.name as unit_name
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+             , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+        FROM bd_material bm
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN sys_user ctr ON bm.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bm.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bm.auditor_id = atr.id
+            LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+        <where>
+            bm.deleted = 0
+            <if test="bdMaterial.materialGroup != null">
+                and bm.material_group = #{ bdMaterial.materialGroup }
+            </if>
+            <if test="bdMaterial.inMaterialGroup != null and bdMaterial.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="bdMaterial.inMaterialGroup" item="materialGroup" index="index" open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="bdMaterial.excludeIds != null and bdMaterial.excludeIds.size > 0">
+                and bm.id not in
+                <foreach collection="bdMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+            <if test="bdMaterial.commFilter != null and bdMaterial.commFilter != ''">
+                and (
+                    bm.number like concat('%', #{ bdMaterial.commFilter }, '%')
+                    or bm.name like concat('%', #{ bdMaterial.commFilter }, '%')
+                    <if test="bdMaterial.ids != null and bdMaterial.ids.size > 0">
+                        or bm.id in
+                        <foreach collection="bdMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                            #{ id }
+                        </foreach>
+                    </if>
+                )
+            </if>
+            <if test="bdMaterial.commFilter == null or bdMaterial.commFilter == ''">
+                <if test="bdMaterial.number != null and bdMaterial.number != ''">
+                    and bm.number like concat('%', #{ bdMaterial.number }, '%')
+                </if>
+                <if test="bdMaterial.name != null and bdMaterial.name != ''">
+                    and bm.name like concat('%', #{ bdMaterial.name }, '%')
+                </if>
+                <if test="bdMaterial.ids != null and bdMaterial.ids.size > 0">
+                    and bm.id in
+                    <foreach collection="bdMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                        #{ id }
+                    </foreach>
+                </if>
+                <if test="bdMaterial.excludeIds != null and bdMaterial.excludeIds.size > 0">
+                    and bm.id not in
+                    <foreach collection="bdMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                        #{ excludeId }
+                    </foreach>
+                </if>
+            </if>
+            <if test="bdMaterial.inStatus != null and bdMaterial.inStatus.size > 0">
+                and bm.status in
+                <foreach collection="bdMaterial.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+        </where>
+        ORDER BY bm.create_time DESC
+    </select>
+
+    <select id="infoById" resultMap="materialMap">
+        SELECT bm.*, bu.name as unit_name
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+             , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+        FROM bd_material bm
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+            LEFT JOIN sys_user ctr ON bm.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bm.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bm.auditor_id = atr.id
+            LEFT JOIN sys_files sf ON bm.main_pic_id = sf.id
+        <where>
+            bm.id = #{ id }
+        </where>
+    </select>
+
+    <select id="listMtrlNum" resultMap="materialMap">
+        SELECT bm.*, bu.name as unit_name
+        FROM bd_material bm
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+        <where>
+            bm.deleted = 0 and bm.material_group = 0
+            <if test="bdMaterial.commFilter != null and bdMaterial.commFilter != ''">
+                and (bm.number like concat('%', #{ bdMaterial.commFilter }, '%') or bm.name like concat('%', #{ bdMaterial.commFilter }, '%'))
+            </if>
+        </where>
+    </select>
+
+    <select id="getNos" resultType="java.lang.String">
+        SELECT *
+        FROM (
+             select number from bd_material
+             union all
+             select number from bd_temp_material
+        ) tb
+        where number like concat(#{ noLike }, '%')
+        order by number desc
+    </select>
+
+
+    <select id="getPageFin" resultMap="materialMap">
+        SELECT bm.id, bm.number, bmd.name, bm.material_group, bm.unit_id
+             , bm.remark, bmd.main_pic_id, bm.wage_id, bmd.status, bm.content
+             , bm.creator_id, bm.create_time, bm.updater_id, bm.update_time, bm.auditor_id, bm.audit_time
+             , bu.name as unit_name
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+             , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+             , bmd.id as mtrl_detailId, bmd.number as sj_number, bmd.price, bmc.color, bms.specification
+        FROM bd_material_detail bmd
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+            LEFT JOIN sys_files sf ON bmd.main_pic_id = sf.id
+            LEFT JOIN sys_user ctr ON bmd.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bmd.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bmd.auditor_id = atr.id
+            LEFT JOIN bd_material bm ON bm.id = bmd.pid
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+        <where>
+            bm.deleted = 0 and bmd.deleted = 0 and bmc.deleted = 0 and bms.deleted = 0
+            <if test="bdMaterial.id != null and bdMaterial.id != ''">
+                and bm.id = #{ bdMaterial.id }
+            </if>
+            <if test="bdMaterial.number != null and bdMaterial.number != ''">
+                and bm.number like concat('%', #{ bdMaterial.number }, '%')
+            </if>
+            <if test="bdMaterial.name != null and bdMaterial.name != ''">
+                and bmd.name like concat('%', #{ bdMaterial.name }, '%')
+            </if>
+            <if test="bdMaterial.sjNumber != null and bdMaterial.sjNumber != ''">
+                and bmd.number like concat('%', #{ bdMaterial.sjNumber }, '%')
+            </if>
+            <if test="bdMaterial.materialGroup != null">
+                and bm.material_group = #{ bdMaterial.materialGroup }
+            </if>
+            <if test="bdMaterial.inMaterialGroup != null and bdMaterial.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="bdMaterial.inMaterialGroup" item="materialGroup" index="index" open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="bdMaterial.ids != null and bdMaterial.ids.size > 0">
+                and bm.id in
+                <foreach collection="bdMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="bdMaterial.inStatus != null and bdMaterial.inStatus.size > 0">
+                and bmd.status in
+                <foreach collection="bdMaterial.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+            <if test="bdMaterial.excludeIds != null and bdMaterial.excludeIds.size > 0">
+                and bmd.id not in
+                <foreach collection="bdMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+        </where>
+        ORDER BY bmd.create_time DESC
+    </select>
+
+    <select id="getListFin" resultMap="materialMap">
+        SELECT bm.id, bm.number, bmd.name, bm.material_group, bm.unit_id
+             , bm.remark, bmd.main_pic_id, bm.wage_id, bmd.status, bm.content
+             , bm.creator_id, bm.create_time, bm.updater_id, bm.update_time, bm.auditor_id, bm.audit_time
+             , bu.name as unit_name
+             , ctr.username as creator, utr.username as updater, atr.username as auditor
+             , sf.file_name as main_file_name, sf.url as main_url, sf.size as main_size, sf.file_type as main_file_type
+             , sf.disable_download as main_disable_download, sf.alias as main_alias, sf.remark as main_remark
+             , bmd.id as mtrl_detailId, bmd.number as sj_number, bmd.price, bmc.color, bms.specification
+        FROM bd_material_detail bmd
+            LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+            LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+            LEFT JOIN sys_files sf ON bmd.main_pic_id = sf.id
+            LEFT JOIN sys_user ctr ON bmd.creator_id = ctr.id
+            LEFT JOIN sys_user utr ON bmd.updater_id = utr.id
+            LEFT JOIN sys_user atr ON bmd.auditor_id = atr.id
+            LEFT JOIN bd_material bm ON bm.id = bmd.pid
+            LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+        <where>
+            bm.deleted = 0 and bmd.deleted = 0
+            <if test="bdMaterial.status != null and bdMaterial.status != ''">
+                and bmd.status = #{ bdMaterial.status }
+            </if>
+            <if test="bdMaterial.inStatus != null and bdMaterial.inStatus.size > 0">
+                and bmd.status in
+                <foreach collection="bdMaterial.inStatus" item="status" index="index" open="(" separator="," close=")">
+                    #{ status }
+                </foreach>
+            </if>
+            <if test="bdMaterial.id != null and bdMaterial.id != ''">
+                and bm.id = #{ bdMaterial.id }
+            </if>
+            <if test="bdMaterial.ids != null and bdMaterial.ids.size > 0">
+                and bm.id in
+                <foreach collection="bdMaterial.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="bdMaterial.excludeIds != null and bdMaterial.excludeIds.size > 0">
+                and bmd.id not in
+                <foreach collection="bdMaterial.excludeIds" item="excludeId" index="index" open="(" separator="," close=")">
+                    #{ excludeId }
+                </foreach>
+            </if>
+            <if test="bdMaterial.materialGroup != null">
+                and bm.material_group = #{ bdMaterial.materialGroup }
+            </if>
+            <if test="bdMaterial.inMaterialGroup != null and bdMaterial.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="bdMaterial.inMaterialGroup" item="materialGroup" index="index" open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="bdMaterial.commFilter != null and bdMaterial.commFilter != ''">
+                and (
+                    bmd.number like concat('%', #{ bdMaterial.commFilter }, '%')
+                    or bmd.name like concat('%', #{ bdMaterial.commFilter }, '%')
+                )
+            </if>
+        </where>
+        ORDER BY bmd.create_time DESC
+    </select>
+    <select id="pageForInv" resultMap="com.fenglei.mapper.inv.InvInventoryMapper.invInventoryMap">
+        SELECT inv.*
+        , bmd.pid as material_id, bm.number as material_number, bm.name as material_name, bm.material_group
+        , bm.unit_id, bu.name as unit_name
+        , bm.main_pic_id as main_pic_id, sf.url as main_pic_url
+        , bmd.color_id, bmc.color, bmd.specification_id, bms.specification
+        , rpsy.name as repository_name, posi.name as position_name
+        , ctr.username as creator, utr.username as updater
+        FROM bd_material bm
+        LEFT JOIN bd_material_detail bmd ON bmd.pid = bm.id
+        LEFT JOIN bd_material_color bmc ON bmd.color_id = bmc.id
+        LEFT JOIN bd_material_specification bms ON bmd.specification_id = bms.id
+        LEFT JOIN inv_inventory inv ON inv.material_detail_id = bmd.id and inv.deleted = 0
+        LEFT JOIN sys_files sf on bmd.main_pic_id = sf.id
+        LEFT JOIN bd_unit bu ON bm.unit_id = bu.id
+        LEFT JOIN bd_repository rpsy ON inv.repository_id = rpsy.id
+        LEFT JOIN bd_position posi ON inv.position_id = posi.id
+        LEFT JOIN sys_user ctr ON inv.creator_id = ctr.id
+        LEFT JOIN sys_user utr ON inv.updater_id = utr.id
+        <where>
+            bmc.deleted = 0 and bms.deleted = 0 and bm.deleted = 0 and bmd.deleted = 0
+            <if test="invInventory.id != null and invInventory.id != ''">
+                and inv.id = #{ invInventory.id }
+            </if>
+            <if test="invInventory.ids != null and invInventory.ids.size > 0">
+                and inv.id in
+                <foreach collection="invInventory.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{ id }
+                </foreach>
+            </if>
+            <if test="invInventory.inMaterialGroup != null and invInventory.inMaterialGroup.size > 0">
+                and bm.material_group in
+                <foreach collection="invInventory.inMaterialGroup" item="materialGroup" index="index"
+                         open="(" separator="," close=")">
+                    #{ materialGroup }
+                </foreach>
+            </if>
+            <if test="invInventory.materialGroupId !=null and invInventory.materialGroupId!=''">
+                and bm.material_group =#{invInventory.materialGroupId}
+            </if>
+            <if test="invInventory.productId != null and invInventory.productId != ''">
+                and bm.id = #{ invInventory.productId }
+            </if>
+            <if test="invInventory.productIds != null and invInventory.productIds.size > 0">
+                and bm.id in
+                <foreach collection="invInventory.productIds" item="productId" index="index"
+                         open="(" separator="," close=")">
+                    #{ productId }
+                </foreach>
+            </if>
+            <if test="invInventory.color != null and invInventory.color != ''">
+                and bmc.color = #{ invInventory.color }
+            </if>
+            <if test="invInventory.color != null and invInventory.color == ''">
+                and (bmc.color is null or bmc.color = '')
+            </if>
+            <if test="invInventory.colorLike != null and invInventory.colorLike != ''">
+                and bmc.color like concat('%', #{ invInventory.colorLike }, '%')
+            </if>
+            <if test="invInventory.specification != null and invInventory.specification != ''">
+                and bms.specification = #{ invInventory.specification }
+            </if>
+            <if test="invInventory.specification != null and invInventory.specification == ''">
+                and (bms.specification is null or bms.specification = '')
+            </if>
+            <if test="invInventory.specificationLike != null and invInventory.specificationLike != ''">
+                and bms.specification like concat('%', #{ invInventory.specificationLike }, '%')
+            </if>
+            <if test="invInventory.repositoryId != null and invInventory.repositoryId != ''">
+                and inv.repository_id = #{ invInventory.repositoryId }
+            </if>
+            <if test="invInventory.repositoryIds != null and invInventory.repositoryIds.size > 0">
+                and inv.repository_id in
+                <foreach collection="invInventory.repositoryIds" item="repositoryId" index="index"
+                         open="(" separator="," close=")">
+                    #{ repositoryId }
+                </foreach>
+            </if>
+            <if test="invInventory.positionId != null and invInventory.positionId != ''">
+                and inv.position_id = #{ invInventory.positionId }
+            </if>
+            <if test="invInventory.positionId != null and invInventory.positionId == ''">
+                and (inv.position_id is null or inv.position_id = '')
+            </if>
+            <if test="invInventory.positionIds != null and invInventory.positionIds.size > 0">
+                and inv.position_id in
+                <foreach collection="invInventory.positionIds" item="positionId" index="index"
+                         open="(" separator="," close=")">
+                    #{ positionId }
+                </foreach>
+            </if>
+            <if test="invInventory.lot != null and invInventory.lot != ''">
+                and inv.lot = #{ invInventory.lot }
+            </if>
+            <if test="invInventory.lotLike != null and invInventory.lotLike != ''">
+                and inv.lot like concat('%', #{ invInventory.lotLike }, '%')
+            </if>
+        </where>
+        ORDER BY inv.material_detail_id
+    </select>
+</mapper>

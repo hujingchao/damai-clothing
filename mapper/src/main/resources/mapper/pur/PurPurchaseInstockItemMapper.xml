@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.pur.PurPurchaseInstockItemMapper">
+
+    <resultMap id="purchaseInstockItemMap" type="com.fenglei.model.pur.entity.PurPurchaseInstockItem">
+        <result property="id" column="id" />
+        <result property="pid" column="pid" />
+        <result property="seq" column="seq" />
+        <result property="materialDetailId" column="material_detail_id" />
+        <result property="supplierId" column="supplier_id" />
+        <result property="colorId" column="color_id" />
+        <result property="specificationId" column="specification_id" />
+        <result property="color" column="color" />
+        <result property="specification" column="specification" />
+        <result property="qty" column="qty" />
+        <result property="price" column="price" />
+        <result property="repositoryId" column="repository_id" />
+        <result property="repositoryName" column="repository_name" />
+        <result property="positionId" column="position_id" />
+        <result property="positionName" column="position_name" />
+        <result property="usePosition" column="use_position" />
+        <result property="piQty" column="pi_qty" />
+        <result property="srcItemId" column="src_item_id" />
+
+        <association property="material"
+                     javaType="com.fenglei.model.basedata.BdMaterial">
+            <result property="id" column="product_id" />
+            <result property="number" column="product_number" />
+            <result property="name" column="product_name" />
+            <result property="mainPicId" column="main_pic_id"></result>
+            <result property="mainPicUrl" column="main_pic_url" />
+            <result property="unitName" column="unit_name" />
+            <result property="materialGroup" column="material_group" />
+        </association>
+
+        <association property="supplier"
+                     javaType="com.fenglei.model.basedata.BdSupplier">
+            <result property="id" column="supplier_id" />
+            <result property="number" column="supplier_number" />
+            <result property="name" column="supplier_name" />
+            <result property="contact" column="supplier_contact"></result>
+            <result property="contactNumber" column="supplier_contact_number" />
+            <result property="address" column="supplier_address" />
+        </association>
+    </resultMap>
+
+    <select id="listByPid" resultMap="purchaseInstockItemMap">
+        select ppii.*,
+               bmd.pid as product_id,
+               bm.number as product_number,
+               bm.name as product_name,
+               bm.main_pic_id as main_pic_id,
+               bm.material_group,
+               sf.url as main_pic_url,
+               bu.name as unit_name,
+               bmd.color_id,
+               bmd.specification_id,
+               bmc.color,
+               bms.specification,
+               supp.number as supplier_number,
+               supp.name as supplier_name,
+               supp.contact as supplier_contact,
+               supp.contact_number as supplier_contact_number,
+               supp.address as supplier_address
+               , rpsy.name as repository_name, rpsy.use_position, posi.name as position_name
+        from pur_purchase_instock_item ppii
+            left join bd_material_detail bmd on ppii.material_detail_id = bmd.id
+            left join bd_material bm on bmd.pid = bm.id
+            left join bd_material_color bmc on bmd.color_id = bmc.id
+            left join bd_material_specification bms on bmd.specification_id = bms.id
+            left join sys_files sf on bm.main_pic_id = sf.id
+            left join bd_unit bu on bm.unit_id = bu.id
+            left join bd_supplier supp on ppii.supplier_id = supp.id
+            left join bd_repository rpsy on ppii.repository_id = rpsy.id
+            left join bd_position posi on ppii.position_id = posi.id
+        where ppii.pid = #{pid}
+    </select>
+
+    <select id="getItemsByMain" resultMap="purchaseInstockItemMap">
+        select ppii.*,
+               bmd.pid as product_id,
+               bm.number as product_number,
+               bm.name as product_name,
+               bm.main_pic_id as main_pic_id,
+               bm.material_group,
+               sf.url as main_pic_url,
+               bu.name as unit_name,
+               bmd.color_id,
+               bmd.specification_id,
+               bmc.color,
+               bms.specification,
+               supp.number as supplier_number,
+               supp.name as supplier_name,
+               supp.contact as supplier_contact,
+               supp.contact_number as supplier_contact_number,
+               supp.address as supplier_address
+                , rpsy.name as repository_name, rpsy.use_position, posi.name as position_name
+        from pur_purchase_instock_item ppii
+            left join bd_material_detail bmd on ppii.material_detail_id = bmd.id
+            left join bd_material bm on bmd.pid = bm.id
+            left join bd_material_color bmc on bmd.color_id = bmc.id
+            left join bd_material_specification bms on bmd.specification_id = bms.id
+            left join sys_files sf on bm.main_pic_id = sf.id
+            left join bd_unit bu on bm.unit_id = bu.id
+            left join bd_supplier supp on ppii.supplier_id = supp.id
+            left join bd_repository rpsy on ppii.repository_id = rpsy.id
+            left join bd_position posi on ppii.position_id = posi.id
+        where
+        1 = 1
+        <if test="purchaseInstock.id != null and purchaseInstock.id != ''">
+            and ppii.pid = #{ purchaseInstock.id }
+        </if>
+        <if test="purchaseInstock.ids != null and purchaseInstock.ids.size > 0">
+            and ppii.pid in
+            <foreach collection="purchaseInstock.ids" item="id"
+                     index="index" open="(" separator="," close=")">
+                #{ id }
+            </foreach>
+        </if>
+        <if test="purchaseInstock.itemProductId != null and purchaseInstock.itemProductId != ''">
+            and bm.id = #{ purchaseInstock.itemProductId }
+        </if>
+        <if test="purchaseInstock.itemProductIds != null and purchaseInstock.itemProductIds.size > 0">
+            and bm.id in
+            <foreach collection="purchaseInstock.itemProductIds" item="itemProductId"
+                     index="index" open="(" separator="," close=")">
+                #{ itemProductId }
+            </foreach>
+        </if>
+        <if test="purchaseInstock.itemSupplierId != null and purchaseInstock.itemSupplierId != ''">
+            and ppii.supplier_id = #{ purchaseInstock.itemSupplierId }
+        </if>
+        <if test="purchaseInstock.itemSupplierIds != null and purchaseInstock.itemSupplierIds.size > 0">
+            and ppii.supplier_id in
+            <foreach collection="purchaseInstock.itemSupplierIds" item="itemSupplierId"
+                     index="index" open="(" separator="," close=")">
+                #{ itemSupplierId }
+            </foreach>
+        </if>
+        <if test="purchaseInstock.itemRepositoryId != null and purchaseInstock.itemRepositoryId != ''">
+            and ppii.repository_id = #{ purchaseInstock.itemRepositoryId }
+        </if>
+        <if test="purchaseInstock.itemRepositoryIds != null and purchaseInstock.itemRepositoryIds.size > 0">
+            and ppii.repository_id in
+            <foreach collection="purchaseInstock.itemRepositoryIds" item="itemRepositoryId"
+                     index="index" open="(" separator="," close=")">
+                #{ itemRepositoryId }
+            </foreach>
+        </if>
+        order by  ppii.seq asc
+    </select>
+</mapper>

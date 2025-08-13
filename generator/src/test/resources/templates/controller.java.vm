@@ -1,0 +1,90 @@
+package ${package.Controller};
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fenglei.common.result.Result;
+import ${package.Entity}.${entity};
+import ${package.Service}.${table.serviceName};
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.*;
+#else
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+/**
+ * <p>
+ * $!{table.comment} 前端控制器
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Api(tags = "$!{table.comment} 前端控制器")
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@RequestMapping("/api.admin/v1#if(${package.ModuleName})/${package.ModuleName}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${table.entityPath}#end")
+@AllArgsConstructor
+@Slf4j
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} {
+#end
+    I${entity}Service ${table.entityPath}Service;
+
+    @ApiOperation(value = "$!{table.comment}新增")
+    @PostMapping("/add")
+    public Result<${entity}> add(@RequestBody ${entity} ${table.entityPath}) {
+        ${entity} result = ${table.entityPath}Service.add(${table.entityPath});
+        return Result.success(result);
+    }
+
+    @ApiOperation(value = "$!{table.comment}删除")
+    @DeleteMapping("/removeById/{id}")
+    public Result<Boolean> removeById(@PathVariable String id) {
+        return Result.judge(${table.entityPath}Service.myRemoveById(id));
+    }
+
+    @ApiOperation(value = "$!{table.comment}批量删除")
+    @DeleteMapping("/removeByIds")
+    public Result<Boolean> removeByIds(@RequestBody ${entity} ${table.entityPath}) {
+        return Result.judge(${table.entityPath}Service.myRemoveByIds(${table.entityPath}.getIds()));
+    }
+
+    @ApiOperation(value = "$!{table.comment}修改")
+    @PutMapping("/update")
+    public Result<Boolean> update(@RequestBody ${entity} ${table.entityPath}) {
+        return Result.judge(${table.entityPath}Service.myUpdate(${table.entityPath}));
+    }
+
+    @ApiOperation(value = "$!{table.comment}分页查询")
+    @GetMapping("/page")
+    public Result<IPage<${entity}>> page(Page page, ${entity} ${table.entityPath}) {
+        IPage<${entity}> result = ${table.entityPath}Service.myPage(page, ${table.entityPath});
+        return Result.success(result);
+    }
+
+    @ApiOperation(value = "$!{table.comment}详细信息")
+    @GetMapping("/detail/{id}")
+    public Result<${entity}> detail(@PathVariable String id) {
+        ${entity} result = ${table.entityPath}Service.detail(id);
+        return Result.success(result);
+    }
+}
+#end

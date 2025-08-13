@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fenglei.mapper.prd.PrdCuttingMapper">
+
+    <select id="myPage" resultType="com.fenglei.model.prd.entity.PrdCutting">
+        select pc.*, bm.number as productNum, bm.name as productName,sf.url as mainPic,be.number as equipmentNum
+        from prd_cutting as pc
+        inner join bd_material as bm on pc.product_id = bm.id
+        left join bd_equipment as be on pc.equipment_id = be.id
+        left join sys_files as sf on bm.main_pic_id = sf.id
+        <where>
+            <if test="cuttingFilterDto.reportedStatus != null">
+                and pc.reported_status = #{cuttingFilterDto.reportedStatus}
+            </if>
+            <if test="cuttingFilterDto.srcId != null and cuttingFilterDto.srcId.trim() != ''">
+                and pc.src_id =  #{cuttingFilterDto.srcId}
+            </if>
+            <if test="cuttingFilterDto.onlyShowWaitReport">
+                and exists(select 1 from prd_cutting_ticket_item as pcti where pcti.qty &gt; pcti.reported_qty and pcti.gp_id = pc.id)
+            </if>
+            <if test="cuttingFilterDto.no != null and cuttingFilterDto.no.trim() != ''">
+                and pc.no like concat('%', #{cuttingFilterDto.no}, '%')
+            </if>
+            <if test="cuttingFilterDto.productNum != null and cuttingFilterDto.productNum.trim() != ''">
+                and bm.number like concat('%', #{cuttingFilterDto.productNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.productArr != null and cuttingFilterDto.productArr.size() > 0">
+                and bm.id in
+                <foreach collection="cuttingFilterDto.productArr" separator="," open="(" close=")" item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="cuttingFilterDto.equipmentNum != null and cuttingFilterDto.equipmentNum.trim() != ''">
+                and be.number like concat('%', #{cuttingFilterDto.equipmentNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.equipmentArr != null and cuttingFilterDto.equipmentArr.size() > 0">
+                and be.id in
+                <foreach collection="cuttingFilterDto.equipmentArr" separator="," open="(" close=")" item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="cuttingFilterDto.remark != null and cuttingFilterDto.remark.trim() != ''">
+                and pc.remark like concat('%', #{cuttingFilterDto.remark}, '%')
+            </if>
+            <if test="cuttingFilterDto.cuttingStartDate != null and cuttingFilterDto.cuttingStartDate.trim() != ''">
+                and date_format(pc.cutting_date, '%Y-%m-%d') &gt;= #{cuttingFilterDto.cuttingStartDate}
+            </if>
+            <if test="cuttingFilterDto.cuttingEndDate != null and cuttingFilterDto.cuttingEndDate.trim() != ''">
+                and date_format(pc.cutting_date, '%Y-%m-%d') &lt;= #{cuttingFilterDto.cuttingEndDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryStartDate != null and cuttingFilterDto.deliveryStartDate.trim() != ''">
+                and date_format(pc.delivery_date, '%Y-%m-%d') &gt;= #{cuttingFilterDto.deliveryStartDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryEndDate != null and cuttingFilterDto.deliveryEndDate.trim() != ''">
+                and date_format(pc.delivery_date, '%Y-%m-%d') &lt;= #{cuttingFilterDto.deliveryEndDate}
+            </if>
+            <if test="cuttingFilterDto.ticketNo != null and cuttingFilterDto.ticketNo.trim() != ''">
+                and exists(select id from prd_cutting_ticket_item pcti where pcti.ticket_no like concat('%', #{cuttingFilterDto.ticketNo}, '%') and pc.id = pcti.gp_id)
+            </if>
+        </where>
+        <if test="cuttingFilterDto.dateSort==1">
+            order by pc.cutting_date asc
+        </if>
+        <if test="cuttingFilterDto.dateSort==2">
+            order by pc.cutting_date desc
+        </if>
+        <if test="cuttingFilterDto.dateSort==3">
+            order by pc.delivery_date asc
+        </if>
+        <if test="cuttingFilterDto.dateSort==4">
+            order by pc.delivery_date desc
+        </if>
+    </select>
+
+    <select id="listSum" resultType="com.fenglei.model.prd.dto.CuttingFilterDto">
+        select ifnull(sum(pc.product_qty), 0) as productQty,
+            ifnull(sum(pc.reported_qty), 0) as reportedQty,
+        ifnull(sum(pc.finish_qty), 0) as finishedQty
+        from prd_cutting as pc
+        inner join prd_cutting_ticket as pct on pc.id = pct.pid
+        inner join bd_material as bm on pc.product_id = bm.id
+        left join bd_equipment as be on pc.equipment_id = be.id
+        left join sys_files as sf on bm.main_pic_id = sf.id
+        <where>
+            <if test="cuttingFilterDto.srcId != null and cuttingFilterDto.srcId.trim() != ''">
+                and pc.src_id =  #{cuttingFilterDto.srcId}
+            </if>
+            <if test="cuttingFilterDto.onlyShowWaitReport">
+                and pc.product_qty &gt; pc.reported_qty
+            </if>
+            <if test="cuttingFilterDto.no != null and cuttingFilterDto.no.trim() != ''">
+                and pc.no like concat('%', #{cuttingFilterDto.no}, '%')
+            </if>
+            <if test="cuttingFilterDto.productNum != null and cuttingFilterDto.productNum.trim() != ''">
+                and bm.number like concat('%', #{cuttingFilterDto.productNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.productArr != null and cuttingFilterDto.productArr.size() > 0">
+                and bm.id in
+                <foreach collection="cuttingFilterDto.productArr" separator="," open="(" close=")" item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="cuttingFilterDto.equipmentNum != null and cuttingFilterDto.equipmentNum.trim() != ''">
+                and be.number like concat('%', #{cuttingFilterDto.equipmentNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.equipmentArr != null and cuttingFilterDto.equipmentArr.size() > 0">
+                and be.id in
+                <foreach collection="cuttingFilterDto.equipmentArr" separator="," open="(" close=")" item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="cuttingFilterDto.remark != null and cuttingFilterDto.remark.trim() != ''">
+                and pc.remark like concat('%', #{cuttingFilterDto.remark}, '%')
+            </if>
+            <if test="cuttingFilterDto.cuttingStartDate != null and cuttingFilterDto.cuttingStartDate.trim() != ''">
+                and date_format(pc.cutting_date, '%Y-%m-%d') &gt;= #{cuttingFilterDto.cuttingStartDate}
+            </if>
+            <if test="cuttingFilterDto.cuttingEndDate != null and cuttingFilterDto.cuttingEndDate.trim() != ''">
+                and date_format(pc.cutting_date, '%Y-%m-%d') &lt;= #{cuttingFilterDto.cuttingEndDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryStartDate != null and cuttingFilterDto.deliveryStartDate.trim() != ''">
+                and date_format(pc.delivery_date, '%Y-%m-%d') &gt;= #{cuttingFilterDto.deliveryStartDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryEndDate != null and cuttingFilterDto.deliveryEndDate.trim() != ''">
+                and date_format(pc.delivery_date, '%Y-%m-%d') &lt;= #{cuttingFilterDto.deliveryEndDate}
+            </if>
+            <if test="cuttingFilterDto.keyWord != null and cuttingFilterDto.keyWord.trim() != ''">
+                and (pc.no like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or bm.number like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or be.number like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or pc.remark like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or pct.color like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or pct.specification like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                )
+            </if>
+        </where>
+    </select>
+
+
+
+    <select id="pageForReportCount" resultType="com.fenglei.model.prd.vo.ProcedureReportVo">
+        select pc.id as cuttingId, pc.no, pc.bill_status, pc.create_time, pc.creator, pc.creator_id, pc.update_time,
+        pc.updater,
+        pc.updater_id, pc.audit_time, pc.auditor, pc.auditor_id, pc.product_id, pc.equipment_id, pc.delivery_date,
+        pc.cutting_date, pc.sum_weaving_qty, pc.product_qty, pc.remark, pc.unit_id, pc.finish_qty,
+        pct.id as cuttingTicketId,
+        pcti.id as cuttingTicketItemId, pcti.qty, pcti.ticket_no,
+        bm.number as productNum, bm.name as productName,sf.url as mainPic,
+        be.number as equipmentNum
+        from prd_cutting as pc
+        inner join prd_cutting_ticket as pct on pc.id = pct.pid
+        inner join prd_cutting_ticket_item as pcti on pct.id = pcti.pid
+        inner join bd_material as bm on pc.product_id = bm.id
+        left join bd_equipment as be on pc.equipment_id = be.id
+        left join sys_files as sf on bm.main_pic_id = sf.id
+        <where>
+            pc.bill_status = 2 and pcti.finish_report = 0
+            <if test="cuttingFilterDto.productNum != null and cuttingFilterDto.productNum.trim() != ''">
+                and bm.number like concat('%', #{cuttingFilterDto.productNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.equipmentNum != null and cuttingFilterDto.equipmentNum.trim() != ''">
+                and be.number like concat('%', #{cuttingFilterDto.equipmentNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.remark != null and cuttingFilterDto.remark.trim() != ''">
+                and pc.remark like concat('%', #{cuttingFilterDto.remark}, '%')
+            </if>
+            <if test="cuttingFilterDto.cuttingStartDate != null and cuttingFilterDto.cuttingStartDate.trim() != ''">
+                and pc.cutting_date &gt;= #{cuttingFilterDto.cuttingStartDate}
+            </if>
+            <if test="cuttingFilterDto.cuttingEndDate != null and cuttingFilterDto.cuttingEndDate.trim() != ''">
+                and pc.cutting_date &lt;= #{cuttingFilterDto.cuttingEndDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryStartDate != null and cuttingFilterDto.deliveryStartDate.trim() != ''">
+                and pc.delivery_date &gt;= #{cuttingFilterDto.deliveryStartDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryEndDate != null and cuttingFilterDto.deliveryEndDate.trim() != ''">
+                and pc.delivery_date &lt;= #{cuttingFilterDto.deliveryEndDate}
+            </if>
+        </where>
+        order by pc.delivery_date asc, pct.id asc, pcti.id asc
+    </select>
+    <select id="pageCurMonthReport" resultType="com.fenglei.model.prd.vo.CurMonthReportVo">
+        select pc.id as cuttingId, pct.id as cuttingTicketId, pcti.id as cuttingTicketItemId,
+        pc.product_id, bm.number as productNum, bm.name as productName, sf.url as mainPic,
+        pc.delivery_date, pc.cutting_date, pc.equipment_id, be.number as equipmentNum,
+        pctir.price, pct.color_id, pct.color, pct.specification_id, pct.specification,
+        pctir.remark, pctir.procedure_id, pctir.procedure_no, bp.number as procedureNum, bp.name as procedureName,
+        pcti.ticket_no, pctir.reported_qty, pctir.reported_qty * pctir.price as reportedAmount
+        from prd_cutting_ticket_item_report as pctir
+        inner join prd_cutting_ticket_item as pcti on pctir.pid = pcti.id
+        inner join prd_cutting_ticket as pct on pcti.pid = pct.id
+        left join bd_material_detail as bmd on bmd.id = pct.sku_id
+        inner join prd_cutting as pc on pct.pid = pc.id
+        inner join bd_material as bm on pc.product_id = bm.id
+        inner join bd_equipment as be on pc.equipment_id = be.id
+        left join sys_files as sf on bmd.main_pic_id = sf.id
+        left join bd_procedure as bp on pctir.procedure_id = bp.id
+        <where>
+            <if test="cuttingFilterDto.productNum != null and cuttingFilterDto.productNum.trim() != ''">
+                and bm.number like concat('%', #{cuttingFilterDto.productNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.equipmentNum != null and cuttingFilterDto.equipmentNum.trim() != ''">
+                and be.number like concat('%', #{cuttingFilterDto.equipmentNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.remark != null and cuttingFilterDto.remark.trim() != ''">
+                and pc.remark like concat('%', #{cuttingFilterDto.remark}, '%')
+            </if>
+            <if test="cuttingFilterDto.cuttingStartDate != null and cuttingFilterDto.cuttingStartDate.trim() != ''">
+                and pc.cutting_date &gt;= #{cuttingFilterDto.cuttingStartDate}
+            </if>
+            <if test="cuttingFilterDto.cuttingEndDate != null and cuttingFilterDto.cuttingEndDate.trim() != ''">
+                and pc.cutting_date &lt;= #{cuttingFilterDto.cuttingEndDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryStartDate != null and cuttingFilterDto.deliveryStartDate.trim() != ''">
+                and pc.delivery_date &gt;= #{cuttingFilterDto.deliveryStartDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryEndDate != null and cuttingFilterDto.deliveryEndDate.trim() != ''">
+                and pc.delivery_date &lt;= #{cuttingFilterDto.deliveryEndDate}
+            </if>
+        </where>
+    </select>
+    <select id="listReportByCuttingId" resultType="com.fenglei.model.prd.vo.CurMonthReportVo">
+        select pc.id as cuttingId, pct.id as cuttingTicketId, pcti.id as cuttingTicketItemId,
+        pc.product_id, bm.number as productNum, bm.name as productName, sf.url as mainPic,
+        pc.delivery_date, pc.cutting_date, pc.equipment_id, be.number as equipmentNum,
+        pctir.price, pct.color_id, pct.color, pct.specification_id, pct.specification,
+        pctir.remark, pctir.procedure_id, pctir.procedure_no, bp.number as procedureNum, bp.name as procedureName,
+        pcti.ticket_no, pctir.reported_qty, pctir.reported_qty * pctir.price as reportedAmount,
+        pctir.reporter_id, pctir.report_time, su.nickname as reporter, pctir.creator_id, su1.nickname as creator
+        from prd_cutting_ticket_item_report as pctir
+        inner join prd_cutting_ticket_item as pcti on pctir.pid = pcti.id
+        inner join prd_cutting_ticket as pct on pcti.pid = pct.id
+        inner join bd_material_detail as bmd on pct.sku_id = bmd.id
+        inner join prd_cutting as pc on pct.pid = pc.id
+        inner join bd_material as bm on pc.product_id = bm.id
+        inner join bd_equipment as be on pc.equipment_id = be.id
+        left join sys_files as sf on bmd.main_pic_id = sf.id
+        left join bd_procedure as bp on pctir.procedure_id = bp.id
+        left join sys_user as su on pctir.reporter_id = su.id
+        left join sys_user as su1 on pctir.creator_id = su1.id
+        <where>
+            pc.id = #{cuttingFilterDto.cuttingId}
+            <if test="cuttingFilterDto.productNum != null and cuttingFilterDto.productNum.trim() != ''">
+                and bm.number like concat('%', #{cuttingFilterDto.productNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.equipmentNum != null and cuttingFilterDto.equipmentNum.trim() != ''">
+                and be.number like concat('%', #{cuttingFilterDto.equipmentNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.remark != null and cuttingFilterDto.remark.trim() != ''">
+                and pc.remark like concat('%', #{cuttingFilterDto.remark}, '%')
+            </if>
+            <if test="cuttingFilterDto.cuttingStartDate != null and cuttingFilterDto.cuttingStartDate.trim() != ''">
+                and pc.cutting_date &gt;= #{cuttingFilterDto.cuttingStartDate}
+            </if>
+            <if test="cuttingFilterDto.cuttingEndDate != null and cuttingFilterDto.cuttingEndDate.trim() != ''">
+                and pc.cutting_date &lt;= #{cuttingFilterDto.cuttingEndDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryStartDate != null and cuttingFilterDto.deliveryStartDate.trim() != ''">
+                and pc.delivery_date &gt;= #{cuttingFilterDto.deliveryStartDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryEndDate != null and cuttingFilterDto.deliveryEndDate.trim() != ''">
+                and pc.delivery_date &lt;= #{cuttingFilterDto.deliveryEndDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="pageProductionSchedule" resultType="com.fenglei.model.prd.vo.CurMonthReportVo">
+        SELECT
+        pc.id AS cuttingId,
+        pct.id AS cuttingTicketId,
+        pcti.id AS cuttingTicketItemId,
+        pc.product_id,
+        bm.number AS productNum,
+        bm.NAME AS productName,
+        sf.url AS mainPic,
+        pc.delivery_date,
+        pc.cutting_date,
+        pc.equipment_id,
+        be.number AS equipmentNum,
+        pctir.price,
+        pct.color_id,
+        pct.color,
+        pct.specification_id,
+        pct.specification,
+        pctir.remark,
+        pctir.procedure_id,
+        pctir.procedure_no,
+        bp.number AS procedureNum,
+        bp.NAME AS procedureName,
+        pcti.ticket_no,
+        pctir.reported_qty,
+        pctir.reported_qty * pctir.price AS reportedAmount,
+        pc.no cuttingNo,
+        pcti.qty,
+        pc.src_no AS orderNo,
+        pctir.report_time,
+        su.nickname,
+        su.id AS jobNumber,
+        pisi.reason,
+        su.id AS jobNumber,
+        pisi.in_stock_num as in_stock_qty,
+        pis.create_time as inStockTime,
+        pis_su.nickname as inStockUserName,
+        pis.remark as inStockRemark,
+        pisi.remark as inStockItemRemark
+        FROM
+        prd_cutting_ticket_item AS pcti
+        LEFT JOIN prd_cutting_ticket_item_report AS pctir ON pctir.pid = pcti.id
+        INNER JOIN prd_cutting_ticket AS pct ON pcti.pid = pct.id
+        INNER JOIN prd_cutting AS pc ON pct.pid = pc.id
+        INNER JOIN bd_material AS bm ON pc.product_id = bm.id
+        INNER JOIN bd_equipment AS be ON pc.equipment_id = be.id
+        LEFT JOIN sys_files AS sf ON bm.main_pic_id = sf.id
+        LEFT JOIN bd_procedure AS bp ON pctir.procedure_id = bp.id
+        LEFT JOIN sys_user AS su ON su.id = pctir.reporter_id
+        LEFT JOIN prd_in_stock_item AS pisi ON pcti.id = pisi.ticket_item_id
+        LEFT JOIN prd_in_stock AS pis ON pisi.pid = pis.id
+        LEFT JOIN sys_user AS pis_su ON pis_su.id = pis.creator_id
+        <where>
+            <if test="cuttingFilterDto.no != null and cuttingFilterDto.no.trim() != ''">
+                and pc.no = #{cuttingFilterDto.no}
+            </if>
+            <if test="cuttingFilterDto.color != null and cuttingFilterDto.color.trim() != ''">
+                and pct.color like concat('%', #{cuttingFilterDto.color}, '%')
+            </if>
+            <if test="cuttingFilterDto.specification != null and cuttingFilterDto.specification.trim() != ''">
+                and pct.specification like concat('%', #{cuttingFilterDto.specification}, '%')
+            </if>
+            <if test="cuttingFilterDto.productId != null and cuttingFilterDto.productId.trim() != ''">
+                and bm.id = #{cuttingFilterDto.productId}
+            </if>
+            <if test="cuttingFilterDto.productNum != null and cuttingFilterDto.productNum.trim() != ''">
+                and bm.number like concat('%', #{cuttingFilterDto.productNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.equipmentNum != null and cuttingFilterDto.equipmentNum.trim() != ''">
+                and be.number like concat('%', #{cuttingFilterDto.equipmentNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.remark != null and cuttingFilterDto.remark.trim() != ''">
+                and pc.remark like concat('%', #{cuttingFilterDto.remark}, '%')
+            </if>
+            <if test="cuttingFilterDto.cuttingStartDate != null and cuttingFilterDto.cuttingStartDate.trim() != ''">
+                and pc.cutting_date &gt;= #{cuttingFilterDto.cuttingStartDate}
+            </if>
+            <if test="cuttingFilterDto.cuttingEndDate != null and cuttingFilterDto.cuttingEndDate.trim() != ''">
+                and pc.cutting_date &lt;= #{cuttingFilterDto.cuttingEndDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryStartDate != null and cuttingFilterDto.deliveryStartDate.trim() != ''">
+                and pc.delivery_date &gt;= #{cuttingFilterDto.deliveryStartDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryEndDate != null and cuttingFilterDto.deliveryEndDate.trim() != ''">
+                and pc.delivery_date &lt;= #{cuttingFilterDto.deliveryEndDate}
+            </if>
+        </where>
+    </select>
+    <select id="pageForProgress" resultType="com.fenglei.model.prd.vo.CuttingTicketDetailVo">
+        select pc.id as cuttingId, pc.no as cuttingNum, pc.equipment_id, be.number as equipmentNum,
+        pc.product_id, bm.number as productNum, bm.NAME as productName, pct.sku_id,
+        bmd.main_pic_id, sf.url as mainPic, pc.product_qty, pc.delivery_date, pc.cutting_date,
+        pct.id as cuttingTicketId, bmd.color_id, pct.color, pct.specification, bmd.specification_id,
+        pct.sum_qty, pct.reported_qty, pct.count, pct.finish_qty as inStockQty
+        from prd_cutting as pc
+        left join prd_cutting_ticket as pct on pc.id = pct.pid
+        left join bd_material as bm on pc.product_id = bm.id
+        left join bd_equipment as be on pc.equipment_id = be.id
+        left join bd_material_detail as bmd on pct.sku_id = bmd.id
+        left join sys_files as sf on bmd.main_pic_id = sf.id
+        <where>
+            <if test="cuttingFilterDto.cuttingStartDate != null and cuttingFilterDto.cuttingStartDate.trim() != ''">
+                and pc.cutting_date &gt;= #{cuttingFilterDto.cuttingStartDate}
+            </if>
+            <if test="cuttingFilterDto.cuttingEndDate != null and cuttingFilterDto.cuttingEndDate.trim() != ''">
+                and pc.cutting_date &lt;= #{cuttingFilterDto.cuttingEndDate}
+            </if>
+            <if test="cuttingFilterDto.keyWord != null and cuttingFilterDto.keyWord.trim() != ''">
+                and (pc.no like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or bm.number like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or be.number like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or pc.remark like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or pct.color like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                    or pct.specification like concat('%', #{cuttingFilterDto.keyWord}, '%')
+                )
+            </if>
+        </where>
+    </select>
+    <select id="detailForProgress" resultType="com.fenglei.model.prd.vo.CuttingTicketDetailVo">
+        select pc.id as cuttingId, pc.no as cuttingNum, pc.equipment_id, be.number as equipmentNum,
+        pc.product_id, bm.number as productNum, bm.NAME as productName, pct.sku_id,
+        bmd.main_pic_id, sf.url as mainPic, pc.product_qty, pc.delivery_date, pc.cutting_date,
+        pct.id as cuttingTicketId, bmd.color_id, pct.color, pct.specification, bmd.specification_id,
+        pct.sum_qty, pct.reported_qty, pct.count, pct.finish_qty as inStockQty
+        from prd_cutting as pc
+        left join prd_cutting_ticket as pct on pc.id = pct.pid
+        left join bd_material as bm on pc.product_id = bm.id
+        left join bd_equipment as be on pc.equipment_id = be.id
+        left join bd_material_detail as bmd on pct.sku_id = bmd.id
+        left join sys_files as sf on bmd.main_pic_id = sf.id
+        where pct.id = #{ticketId}
+    </select>
+
+    <select id="productionScheduleSum" resultType="com.fenglei.model.prd.dto.CuttingFilterDto">
+        SELECT
+        pc.id AS cuttingId,
+        pct.id AS cuttingTicketId,
+        pcti.id AS cuttingTicketItemId,
+        pc.product_id,
+        bm.number AS productNum,
+        bm.NAME AS productName,
+        sf.url AS mainPic,
+        pc.delivery_date,
+        pc.cutting_date,
+        pc.equipment_id,
+        be.number AS equipmentNum,
+        pctir.price,
+        pct.color_id,
+        pct.color,
+        pct.specification_id,
+        pct.specification,
+        pctir.remark,
+        pctir.procedure_id,
+        pctir.procedure_no,
+        bp.number AS procedureNum,
+        bp.NAME AS procedureName,
+        pcti.ticket_no,
+        SUM(pctir.reported_qty) totalCount,
+        SUM(pctir.reported_qty * pctir.price) totalAmount,
+        pc.no cuttingNo,
+        pcti.qty,
+        pc.src_no AS orderNo,
+        pctir.report_time,
+        su.nickname,
+        su.id AS jobNumber
+        FROM
+        prd_cutting_ticket_item_report AS pctir
+        INNER JOIN prd_cutting_ticket_item AS pcti ON pctir.pid = pcti.id
+        INNER JOIN prd_cutting_ticket AS pct ON pcti.pid = pct.id
+        INNER JOIN prd_cutting AS pc ON pct.pid = pc.id
+        INNER JOIN bd_material AS bm ON pc.product_id = bm.id
+        INNER JOIN bd_equipment AS be ON pc.equipment_id = be.id
+        LEFT JOIN sys_files AS sf ON bm.main_pic_id = sf.id
+        LEFT JOIN bd_procedure AS bp ON pctir.procedure_id = bp.id
+        LEFT JOIN sys_user su ON su.id = pctir.reporter_id
+        <where>
+            <if test="cuttingFilterDto.no != null and cuttingFilterDto.no.trim() != ''">
+                pc.no = #{cuttingFilterDto.no}
+            </if>
+            <if test="cuttingFilterDto.color != null and cuttingFilterDto.color.trim() != ''">
+                pct.color like concat('%', #{cuttingFilterDto.color}, '%')
+            </if>
+            <if test="cuttingFilterDto.specification != null and cuttingFilterDto.specification.trim() != ''">
+                pct.specification like concat('%', #{cuttingFilterDto.specification}, '%')
+            </if>
+            <if test="cuttingFilterDto.productId != null and cuttingFilterDto.productId.trim() != ''">
+                bm.id = #{cuttingFilterDto.productId}
+            </if>
+            <if test="cuttingFilterDto.productNum != null and cuttingFilterDto.productNum.trim() != ''">
+                bm.number like concat('%', #{cuttingFilterDto.productNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.equipmentNum != null and cuttingFilterDto.equipmentNum.trim() != ''">
+                and be.number like concat('%', #{cuttingFilterDto.equipmentNum}, '%')
+            </if>
+            <if test="cuttingFilterDto.remark != null and cuttingFilterDto.remark.trim() != ''">
+                and pc.remark like concat('%', #{cuttingFilterDto.remark}, '%')
+            </if>
+            <if test="cuttingFilterDto.cuttingStartDate != null and cuttingFilterDto.cuttingStartDate.trim() != ''">
+                and pc.cutting_date &gt;= #{cuttingFilterDto.cuttingStartDate}
+            </if>
+            <if test="cuttingFilterDto.cuttingEndDate != null and cuttingFilterDto.cuttingEndDate.trim() != ''">
+                and pc.cutting_date &lt;= #{cuttingFilterDto.cuttingEndDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryStartDate != null and cuttingFilterDto.deliveryStartDate.trim() != ''">
+                and pc.delivery_date &gt;= #{cuttingFilterDto.deliveryStartDate}
+            </if>
+            <if test="cuttingFilterDto.deliveryEndDate != null and cuttingFilterDto.deliveryEndDate.trim() != ''">
+                and pc.delivery_date &lt;= #{cuttingFilterDto.deliveryEndDate}
+            </if>
+            <if test="cuttingFilterDto.keyWord != null and cuttingFilterDto.keyWord.trim() != ''">
+                and (be.number like concat('%', #{cuttingFilterDto.keyWord}, '%') or  bm.name like concat('%', #{cuttingFilterDto.keyWord}, '%') or su.nickname like concat('%', #{cuttingFilterDto.keyWord}, '%'))
+            </if>
+        </where>
+    </select>
+</mapper>

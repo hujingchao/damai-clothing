@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fenglei.mapper.system.MsgMapper">
+
+    <select id="list" resultType="com.fenglei.model.system.entity.SysMsg">
+        select * from sys_msg s
+        <where>
+            <if test="msg.title !=null and msg.title != ''">
+                and  s.title like concat('%',#{msg.title},'%')
+            </if>
+            <if test="msg.content !=null and msg.content != ''">
+                and  s.content like concat('%',#{msg.content},'%')
+            </if>
+            <if test="msg.bizNo !=null and msg.bizNo != ''">
+                and  s.biz_no like concat('%',#{msg.bizNo},'%')
+            </if>
+            <if test="msg.bizId !=null and msg.bizId != ''">
+                and  s.biz_id=#{msg.bizId}
+            </if>
+            <if test="msg.userId !=null and msg.userId != ''">
+                and  s.user_id=#{msg.userId}
+            </if>
+            <if test="msg.isRead !=null and msg.isRead != ''">
+                and  s.is_read=#{msg.isRead}
+            </if>
+            <if test ="msg.roleIds!=null and msg.roleIds.size>0">
+                and s.role_id  in
+                <foreach item="item" collection="msg.roleIds"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>
