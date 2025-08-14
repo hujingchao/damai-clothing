@@ -30,12 +30,12 @@ public class ServiceExpirationInterceptor implements HandlerInterceptor {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        userMapper.insertInterceptorLog(request.getMethod(), request.getRequestURI(), request.getQueryString(), RequestUtils.getUserId());
-
-        userMapper.selectInterceptorLogs();
-
-        List<SysMenu> menuList = userMapper.listForRouter();
-        List<RouterVO> list = recursionForRoutes(AdminConstants.ROOT_MENU_ID, menuList);
+//        userMapper.insertInterceptorLog(request.getMethod(), request.getRequestURI(), request.getQueryString(), RequestUtils.getUserId());
+//
+//        userMapper.selectInterceptorLogs();
+//
+//        List<SysMenu> menuList = userMapper.listForRouter();
+//        List<RouterVO> list = recursionForRoutes(AdminConstants.ROOT_MENU_ID, menuList);
 
         return true;
     }
