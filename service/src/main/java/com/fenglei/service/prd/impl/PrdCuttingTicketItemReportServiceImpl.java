@@ -1,5 +1,6 @@
 package com.fenglei.service.prd.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fenglei.common.exception.BizException;
 import com.fenglei.model.basedata.BdProcedure;
@@ -117,16 +118,17 @@ public class PrdCuttingTicketItemReportServiceImpl extends ServiceImpl<PrdCuttin
 
             List<String> reporterIds = cuttingTicketItemReports.stream().map(PrdCuttingTicketItemReport::getReporterId).distinct().collect(Collectors.toList());
             List<SysUser> sysUsers = userService.listByIds(reporterIds);
-            if (sysUsers.size() != reporterIds.size()) {
-                throw new BizException("部分员工已被删除，请核实！");
-            }
+//            if (sysUsers.size() != reporterIds.size()) {
+//                throw new BizException("部分员工已被删除，请核实！");
+//            }
             for (PrdCuttingTicketItemReport cuttingTicketItemReport : cuttingTicketItemReports) {
                 BdProcedure bdProcedure = bdProcedures.stream().filter(t -> t.getId().equals(cuttingTicketItemReport.getProcedureId())).findFirst().orElse(new BdProcedure());
                 cuttingTicketItemReport.setProcedureNum(bdProcedure.getNumber());
                 cuttingTicketItemReport.setProcedureName(bdProcedure.getName());
-
-                SysUser sysUser = sysUsers.stream().filter(t -> t.getId().equals(cuttingTicketItemReport.getReporterId())).findFirst().orElse(new SysUser());
-                cuttingTicketItemReport.setReporterName(sysUser.getNickname());
+                if (CollectionUtil.isNotEmpty(sysUsers)) {
+                    SysUser sysUser = sysUsers.stream().filter(t -> t.getId().equals(cuttingTicketItemReport.getReporterId())).findFirst().orElse(new SysUser());
+                    cuttingTicketItemReport.setReporterName(sysUser.getNickname());
+                }
             }
         }
         return cuttingTicketItemReports;
@@ -171,17 +173,18 @@ public class PrdCuttingTicketItemReportServiceImpl extends ServiceImpl<PrdCuttin
 
             List<String> reporterIds = cuttingTicketItemReports.stream().map(PrdCuttingTicketItemReport::getReporterId).distinct().collect(Collectors.toList());
             List<SysUser> sysUsers = userService.listByIds(reporterIds);
-            if (sysUsers.size() != reporterIds.size()) {
-                throw new BizException("部分员工已被删除，请核实！");
-            }
+//            if (sysUsers.size() != reporterIds.size()) {
+//                throw new BizException("部分员工已被删除，请核实！");
+//            }
 
             for (PrdCuttingTicketItemReport cuttingTicketItemReport : cuttingTicketItemReports) {
                 BdProcedure bdProcedure = bdProcedures.stream().filter(t -> t.getId().equals(cuttingTicketItemReport.getProcedureId())).findFirst().orElse(new BdProcedure());
                 cuttingTicketItemReport.setProcedureNum(bdProcedure.getNumber());
                 cuttingTicketItemReport.setProcedureName(bdProcedure.getName());
-
-                SysUser sysUser = sysUsers.stream().filter(t -> t.getId().equals(cuttingTicketItemReport.getReporterId())).findFirst().orElse(new SysUser());
-                cuttingTicketItemReport.setReporterName(sysUser.getNickname());
+                if (CollectionUtil.isNotEmpty(sysUsers)) {
+                    SysUser sysUser = sysUsers.stream().filter(t -> t.getId().equals(cuttingTicketItemReport.getReporterId())).findFirst().orElse(new SysUser());
+                    cuttingTicketItemReport.setReporterName(sysUser.getNickname());
+                }
             }
         }
         return cuttingTicketItemReports;
