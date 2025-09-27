@@ -158,7 +158,7 @@ public class ReportServiceImpl implements ReportService {
             for (CuttingTicketReportVo record : result.getRecords()) {
                 record.setUsedQty(record.getRealQty().divide(record.getSumQty(),3, RoundingMode.HALF_UP));
                 record.setStandardQty(record.getTheoryQty().divide(record.getSumQty(),3, RoundingMode.HALF_UP));
-                if(record.getUsedQty().compareTo(BigDecimal.ZERO) !=0 ){
+                if(record.getUsedQty().compareTo(BigDecimal.ZERO) !=0 && !(record.getStandardQty().compareTo(BigDecimal.ZERO) == 0)){
                     record.setError(record.getUsedQty().subtract(record.getStandardQty()));
                     record.setErrorRate(record.getError().multiply(new BigDecimal("100")).divide(record.getStandardQty(),3, RoundingMode.HALF_UP));
                 }
