@@ -45,7 +45,7 @@ minio:
   view-endpoint: https://damaiclothing.cloud/minio/
   endpoint: http://1.13.193.71:9000/
   access-key: minioadmin
-  secret-key: YiusasjK@lskaj1afja
+  secret-key: minioadmin
   bucket: damai-clothing
 wechat:
   weapp:
